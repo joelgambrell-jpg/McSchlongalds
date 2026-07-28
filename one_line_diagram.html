@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NEXUS One-Line Workspace</title>
+  <link rel="stylesheet" href="one_line_diagram.css" />
+</head>
+<body>
+<header class="nx-header">
+  <div class="brand"><div class="brand-mark">NE<span>X</span>US</div><div class="brand-sub">DATA SCIENCE LLC</div></div>
+  <div class="title-block"><h1>One-Line Workspace</h1><p id="diagramSubtitle">Building A • Overall</p></div>
+  <div class="header-actions">
+    <span class="editing-pill"><span class="dot"></span>Edit Mode</span>
+    <span class="save-state" id="saveState">Saved</span>
+    <button class="btn ghost" id="undoBtn" title="Undo (Ctrl+Z)">↶ Undo</button>
+    <button class="btn ghost" id="redoBtn" title="Redo (Ctrl+Y)">↷ Redo</button>
+    <button class="btn primary" id="saveBtn">Save Diagram</button>
+  </div>
+</header>
+
+<section class="control-strip">
+  <label>Project / Building<select id="buildingSelect"><option value="A">Building A</option></select></label>
+  <label>Diagram<select id="diagramSelect"><option value="overall">Building A — Overall</option><option value="phase-1">Phase 1</option><option value="phase-2">Phase 2</option><option value="phase-3">Phase 3</option></select></label>
+  <label>Visible Equipment<select id="viewSelect"><option value="all">All Equipment</option><option value="phase-1">Phase 1</option><option value="phase-2">Phase 2</option><option value="phase-3">Phase 3</option></select></label>
+  <div class="tool-group primary-tools">
+    <button class="btn tool active" data-tool="select" title="Select and move">Pointer</button>
+    <button class="btn tool" data-tool="connect" title="Click two equipment items or drag from a port">Connect</button>
+    <button class="btn tool" id="addLabelBtn">+ Label</button>
+    <button class="btn tool" id="addZoneBtn">+ Zone</button>
+    <button class="btn tool" id="fitBtn">Fit</button>
+    <button class="btn tool" id="zoomOutBtn">−</button>
+    <button class="btn tool" id="zoomInBtn">+</button>
+    <button class="btn tool" id="fullscreenBtn">Full Screen</button>
+  </div>
+  <details class="more-menu">
+    <summary class="btn tool">Arrange ▾</summary>
+    <div class="menu-panel">
+      <button id="autoArrangeBtn">Auto Arrange</button>
+      <button id="alignLeftBtn">Align Left</button>
+      <button id="alignTopBtn">Align Top</button>
+      <button id="distributeHBtn">Space Horizontally</button>
+      <button id="distributeVBtn">Space Vertically</button>
+      <button id="lockBtn">Lock / Unlock</button>
+      <button id="collapseBtn">Collapse Phases</button>
+      <button id="gridBtn">Grid: On</button>
+    </div>
+  </details>
+</section>
+
+<main class="workspace" id="workspace">
+  <aside class="pool panel" id="poolPanel">
+    <div class="panel-head"><div><strong>Equipment Pool</strong> <span class="count" id="poolCount">0</span></div><button class="icon-btn" id="hidePoolBtn" title="Hide pool">×</button></div>
+    <div class="pool-search"><input id="poolSearch" placeholder="Search equipment..." /></div>
+    <div class="pool-tabs"><button class="pool-tab active" data-pool-tab="all">All</button><button class="pool-tab" data-pool-tab="placed">Placed</button><button class="pool-tab" data-pool-tab="unplaced">Unplaced</button></div>
+    <div class="pool-list" id="poolList"></div>
+  </aside>
+
+  <section class="canvas-wrap panel" id="canvasWrap">
+    <div class="canvas-toolbar"><button class="small-link" id="showPoolBtn">Equipment Pool</button><span id="canvasHint">Drag from the pool. Double-click equipment to open it.</span><span id="zoomLabel">100%</span></div>
+    <div class="canvas-viewport" id="viewport">
+      <svg id="diagramSvg" xmlns="http://www.w3.org/2000/svg" tabindex="0" aria-label="NEXUS one-line diagram">
+        <defs>
+          <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#dedede" stroke-width="0.7"/></pattern>
+          <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#smallGrid)"/><path d="M 100 0 L 0 0 0 100" fill="none" stroke="#c7c7c7" stroke-width="1"/></pattern>
+          <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L9,4.5 L0,9 z" fill="#111"/></marker>
+          <filter id="selectedGlow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#d51f26" flood-opacity="0.9"/></filter>
+        </defs>
+        <rect id="gridRect" x="-12000" y="-8000" width="24000" height="16000" fill="url(#grid)"/>
+        <g id="worldLayer"><g id="zonesLayer"></g><g id="connectionsLayer"></g><g id="nodesLayer"></g><g id="labelsLayer"></g><g id="overlayLayer"></g></g>
+      </svg>
+    </div>
+    <div class="status-bar"><span id="selectedStatus">Selected: none</span><span id="statsStatus">0 equipment • 0 connections</span><span id="snapStatus">Grid: On • Snap: On</span><span id="autosaveStatus">Auto-save: Saved</span></div>
+  </section>
+
+  <aside class="properties panel" id="propertiesPanel">
+    <div class="mini-map-wrap"><div class="section-title">Mini Map</div><svg id="miniMap" viewBox="0 0 320 170" aria-label="Diagram mini map"></svg></div>
+    <div class="properties-wrap"><div class="section-title">Properties</div><div id="emptyProperties" class="empty-properties">Select equipment, a label, a zone, or a connection.</div>
+      <form id="propertyForm" class="property-form hidden">
+        <label>Name<input id="propName" /></label>
+        <label id="shapeRow">Shape<select id="propShape"><option value="auto">Automatic</option><option value="switchgear">Switchgear</option><option value="ats">ATS</option><option value="transformer">Transformer</option><option value="generator">Generator</option><option value="panelboard">Panelboard</option><option value="ups">UPS</option><option value="pdu">PDU</option><option value="meter">Meter</option><option value="busway">Busway</option><option value="disconnect">Disconnect</option><option value="rectangle">Rectangle</option></select></label>
+        <div class="two-col" id="sizeRow"><label>Width<input id="propWidth" type="number" min="70" max="900" /></label><label>Height<input id="propHeight" type="number" min="45" max="700" /></label></div>
+        <label class="checkbox" id="arrowRow"><input id="propArrow" type="checkbox" /> Show direction arrow</label>
+        <label class="checkbox" id="lockRow"><input id="propLocked" type="checkbox" /> Lock position</label>
+        <div class="readout" id="equipmentReadout"></div>
+        <button type="button" class="btn primary full" id="openEquipmentBtn">Open Equipment</button>
+        <button type="button" class="btn danger full" id="removeBtn">Return to Pool / Delete</button>
+      </form>
+    </div>
+    <div class="legend"><div class="section-title">Completion</div><div><span class="swatch green"></span>100% Complete</div><div><span class="swatch orange"></span>51–99% Complete</div><div><span class="swatch purple"></span>1–50% Complete</div><div><span class="swatch red"></span>0% Complete</div><div><span class="swatch gray"></span>No Data</div></div>
+  </aside>
+</main>
+<div class="toast hidden" id="toast"></div>
+<script src="one_line_storage.js"></script><script src="one_line_diagram.js"></script>
+</body>
+</html>
