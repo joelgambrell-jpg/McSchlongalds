@@ -8,107 +8,36 @@
     content="width=device-width, initial-scale=1"
   />
 
+  <meta
+    http-equiv="Cache-Control"
+    content="no-cache, no-store, must-revalidate"
+  />
+
+  <meta
+    http-equiv="Pragma"
+    content="no-cache"
+  />
+
+  <meta
+    http-equiv="Expires"
+    content="0"
+  />
+
   <title>NEXUS One-Line Workspace</title>
-
-  <!--
-    ============================================================
-    NEXUS ONE-LINE WORKSPACE
-    FILE: one_line_diagram.html
-    ============================================================
-
-    PURPOSE
-    -------
-    This file is the full administrative editing workspace for the
-    NEXUS One-Line Diagram system.
-
-    It does not contain the diagram interface itself. Instead, it
-    provides a host container and asks one_line_diagram.js to mount
-    the editor inside that container.
-
-    WHY THIS STRUCTURE IS USED
-    --------------------------
-    The same diagram engine must support two different displays:
-
-    1. EDIT MODE
-       Full workspace with:
-       - equipment pool
-       - editing toolbar
-       - properties panel
-       - connection tools
-       - labels and zones
-       - save controls
-
-    2. VIEW MODE
-       Simplified dashboard pane with:
-       - actual diagram
-       - zoom and pan
-       - fit-to-pane
-       - clickable equipment
-       - no accidental editing
-
-    Keeping the interface inside a reusable JavaScript component
-    prevents us from building and maintaining two separate diagram
-    systems.
-
-    CURRENT DATA SOURCE
-    -------------------
-    Sample equipment stored in one_line_diagram.js.
-
-    FUTURE DATA SOURCE
-    ------------------
-    dashboardEquipment supplied by the main NEXUS dashboard.
-
-    CURRENT STORAGE
-    ---------------
-    Browser localStorage through one_line_storage.js.
-
-    FUTURE STORAGE
-    --------------
-    Firebase through the same storage adapter interface.
-
-    IMPORTANT
-    ---------
-    This file is a standalone development and editing page.
-
-    The dashboard will not embed this entire HTML page. The dashboard
-    will create its own container and mount the same diagram engine in
-    view mode.
-    ============================================================
-  -->
 
   <link
     rel="stylesheet"
-    href="one_line_diagram.css"
+    href="one_line_diagram.css?v=4"
   />
 </head>
 
 <body class="one-line-standalone-page">
 
-  <!--
-    ============================================================
-    STANDALONE WORKSPACE HOST
-    ============================================================
-
-    one_line_diagram.js builds the complete editing interface inside
-    this element.
-
-    Do not manually place toolbar, pool, canvas, or properties markup
-    outside this container. The JavaScript component owns all markup
-    used by the diagram.
-
-    The main dashboard will use a different host element but mount the
-    same diagram engine with mode: "view".
-    ============================================================
-  -->
   <main
     id="oneLineWorkspaceHost"
     class="one-line-host"
     aria-label="NEXUS One-Line Diagram editing workspace"
   >
-    <!--
-      This message remains visible only while the JavaScript files are
-      loading or when the component cannot initialize.
-    -->
     <section
       id="oneLineLoadingState"
       class="one-line-loading-state"
@@ -120,222 +49,215 @@
     </section>
   </main>
 
-  <!--
-    ============================================================
-    SCRIPT LOAD ORDER
-    ============================================================
-
-    1. one_line_storage.js
-       Provides load/save behavior.
-
-    2. one_line_diagram.js
-       Provides the reusable diagram engine and interface.
-
-    Do not reverse this order. The diagram engine expects the storage
-    adapter to be available when the workspace mounts.
-    ============================================================
-  -->
-  <script src="one_line_storage.js"></script>
-  <script src="one_line_diagram.js"></script>
+  <script src="one_line_storage.js?v=4"></script>
+  <script src="one_line_diagram.js?v=4"></script>
 
   <script>
-    /**
-     * ==========================================================
-     * STANDALONE WORKSPACE STARTUP
-     * ==========================================================
-     *
-     * This starts the reusable One-Line component in edit mode.
-     *
-     * The dashboard will use nearly the same call, except:
-     *
-     *   mode: "view"
-     *
-     * The project, building, and diagram identifiers are included
-     * now so storage can later separate layouts correctly.
-     */
+    (function initializeOneLineWorkspace() {
+      "use strict";
 
-    document.addEventListener("DOMContentLoaded", function () {
-      const loadingState = document.getElementById(
-        "oneLineLoadingState"
-      );
-
-      /**
-       * The next version of one_line_diagram.js will expose:
-       *
-       * window.NEXUS.OneLine.mount()
-       *
-       * This guard prevents a blank screen if the JavaScript file is
-       * missing, outdated, or fails to load.
-       */
-      if (
-        !window.NEXUS ||
-        !window.NEXUS.OneLine ||
-        typeof window.NEXUS.OneLine.mount !== "function"
-      ) {
-        showStartupFailure(
-          "The One-Line diagram engine could not be loaded. " +
-          "Confirm that one_line_diagram.js is in the same folder " +
-          "and has been updated to the reusable component version."
+      function showStartupFailure(message, error) {
+        const host = document.getElementById(
+          "oneLineWorkspaceHost"
         );
 
-        return;
-      }
-
-      try {
-        /**
-         * EDIT WORKSPACE CONFIGURATION
-         *
-         * projectId
-         * Identifies the NEXUS project.
-         *
-         * buildingId
-         * Identifies the active building.
-         *
-         * diagramId
-         * Identifies the specific independent layout.
-         *
-         * Examples:
-         * - overall
-         * - phase-1
-         * - phase-2
-         *
-         * mode
-         * "edit" displays the full administrative workspace.
-         *
-         * equipment
-         * During development, sampleEquipment is supplied by the
-         * diagram engine.
-         *
-         * During dashboard integration, this will be replaced with
-         * dashboardEquipment.
-         */
-        window.NEXUS.OneLine.mount({
-          container: "#oneLineWorkspaceHost",
-
-          mode: "edit",
-
-          projectId: "sample-project",
-
-          buildingId: "A",
-
-          diagramId: "overall",
-
-          equipment:
-            window.NEXUS.OneLine.sampleEquipment || [],
-
-          /**
-           * Called when the user opens an equipment record.
-           *
-           * FUTURE DASHBOARD INTEGRATION:
-           * This may later use the dashboard's existing equipment
-           * navigation method instead of opening equipment.html.
-           */
-          onOpenEquipment: function (equipmentId) {
-            if (!equipmentId) {
-              return;
-            }
-
-            const url =
-              "equipment.html?eq=" +
-              encodeURIComponent(equipmentId);
-
-            window.open(
-              url,
-              "_blank",
-              "noopener,noreferrer"
-            );
-          },
-
-          /**
-           * Called whenever the diagram is successfully saved.
-           *
-           * This callback is available for future dashboard alerts,
-           * audit logging, or Firebase synchronization status.
-           */
-          onSave: function (saveResult) {
-            console.info(
-              "[NEXUS One-Line] Diagram saved.",
-              saveResult
-            );
-          },
-
-          /**
-           * Called when the component reports an operational error.
-           *
-           * Errors are logged here so another developer can trace
-           * failures without searching through multiple files.
-           */
-          onError: function (error) {
-            console.error(
-              "[NEXUS One-Line] Component error:",
-              error
-            );
-          }
-        });
-
-        /**
-         * The diagram component replaces the loading markup when it
-         * mounts. This extra removal protects against an outdated
-         * component that leaves the loading state behind.
-         */
-        if (
-          loadingState &&
-          loadingState.isConnected
-        ) {
-          loadingState.remove();
+        if (error) {
+          console.error(
+            "[NEXUS One-Line] Startup failure:",
+            error
+          );
         }
-      } catch (error) {
-        console.error(
-          "[NEXUS One-Line] Startup failed:",
-          error
+
+        if (!host) {
+          return;
+        }
+
+        host.innerHTML = "";
+
+        const panel = document.createElement("section");
+        panel.className = "one-line-startup-error";
+        panel.setAttribute("role", "alert");
+
+        const heading = document.createElement("h1");
+        heading.textContent =
+          "One-Line Workspace Unavailable";
+
+        const description = document.createElement("p");
+        description.textContent = message;
+
+        const fileHelp = document.createElement("p");
+        fileHelp.textContent =
+          "Required files: one_line_diagram.html, " +
+          "one_line_diagram.css, one_line_diagram.js, " +
+          "and one_line_storage.js.";
+
+        const consoleHelp = document.createElement("p");
+        consoleHelp.textContent =
+          "Press F12 and open the Console tab for the exact error.";
+
+        panel.appendChild(heading);
+        panel.appendChild(description);
+        panel.appendChild(fileHelp);
+        panel.appendChild(consoleHelp);
+
+        host.appendChild(panel);
+      }
+
+      function startWorkspace() {
+        const host = document.getElementById(
+          "oneLineWorkspaceHost"
         );
 
-        showStartupFailure(
-          "The One-Line workspace could not start. " +
-          "Open the browser developer console for the exact error."
+        if (!host) {
+          console.error(
+            "[NEXUS One-Line] Workspace host was not found."
+          );
+
+          return;
+        }
+
+        if (
+          !window.NexusOneLineStorage ||
+          typeof window.NexusOneLineStorage.load !== "function" ||
+          typeof window.NexusOneLineStorage.save !== "function"
+        ) {
+          showStartupFailure(
+            "The diagram storage system could not be loaded. " +
+            "Confirm that one_line_storage.js is in the same folder."
+          );
+
+          return;
+        }
+
+        if (
+          !window.NEXUS ||
+          !window.NEXUS.OneLine ||
+          typeof window.NEXUS.OneLine.mount !== "function"
+        ) {
+          showStartupFailure(
+            "The One-Line diagram engine could not be loaded. " +
+            "Confirm that one_line_diagram.js is in the same folder " +
+            "and contains window.NEXUS.OneLine.mount()."
+          );
+
+          return;
+        }
+
+        try {
+          /*
+           * Do not pass an empty equipment array here.
+           *
+           * When no equipment property is supplied, the standalone
+           * editor can use the sample equipment contained inside the
+           * diagram engine.
+           *
+           * The Ohio dashboard will later pass:
+           *
+           * equipment: dashboardEquipment
+           */
+          const controller = window.NEXUS.OneLine.mount({
+            container: host,
+
+            mode: "edit",
+
+            projectId: "sample-project",
+
+            buildingId: "A",
+
+            diagramId: "overall",
+
+            onOpenEquipment: function handleOpenEquipment(
+              equipmentOrId
+            ) {
+              let equipmentId = "";
+
+              if (typeof equipmentOrId === "string") {
+                equipmentId = equipmentOrId;
+              } else if (
+                equipmentOrId &&
+                typeof equipmentOrId === "object"
+              ) {
+                equipmentId =
+                  equipmentOrId.equipmentId ||
+                  equipmentOrId.id ||
+                  "";
+              }
+
+              if (!equipmentId) {
+                console.warn(
+                  "[NEXUS One-Line] No equipment ID was provided."
+                );
+
+                return;
+              }
+
+              const url =
+                "equipment.html?eq=" +
+                encodeURIComponent(equipmentId);
+
+              window.open(
+                url,
+                "_blank",
+                "noopener,noreferrer"
+              );
+            },
+
+            onSave: function handleDiagramSave(saveResult) {
+              console.info(
+                "[NEXUS One-Line] Diagram saved.",
+                saveResult
+              );
+            },
+
+            onError: function handleDiagramError(error) {
+              console.error(
+                "[NEXUS One-Line] Component error:",
+                error
+              );
+            }
+          });
+
+          /*
+           * Keep a reference available for browser-console testing.
+           *
+           * Example:
+           * window.nexusOneLineWorkspace.fitDiagram()
+           */
+          window.nexusOneLineWorkspace =
+            controller || null;
+
+          const loadingState = document.getElementById(
+            "oneLineLoadingState"
+          );
+
+          if (
+            loadingState &&
+            loadingState.isConnected
+          ) {
+            loadingState.remove();
+          }
+
+          console.info(
+            "[NEXUS One-Line] Workspace mounted successfully."
+          );
+        } catch (error) {
+          showStartupFailure(
+            "The One-Line workspace could not start.",
+            error
+          );
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener(
+          "DOMContentLoaded",
+          startWorkspace,
+          { once: true }
         );
+      } else {
+        startWorkspace();
       }
-    });
-
-    /**
-     * Displays a readable startup error instead of leaving the user
-     * with a blank page.
-     *
-     * @param {string} message
-     */
-    function showStartupFailure(message) {
-      const host = document.getElementById(
-        "oneLineWorkspaceHost"
-      );
-
-      if (!host) {
-        return;
-      }
-
-      host.innerHTML = "";
-
-      const errorPanel = document.createElement("section");
-      errorPanel.className = "one-line-startup-error";
-      errorPanel.setAttribute("role", "alert");
-
-      const heading = document.createElement("h1");
-      heading.textContent = "One-Line Workspace Unavailable";
-
-      const description = document.createElement("p");
-      description.textContent = message;
-
-      const help = document.createElement("p");
-      help.textContent =
-        "Required files: one_line_diagram.html, " +
-        "one_line_diagram.css, one_line_diagram.js, and " +
-        "one_line_storage.js.";
-
-      errorPanel.appendChild(heading);
-      errorPanel.appendChild(description);
-      errorPanel.appendChild(help);
-
-      host.appendChild(errorPanel);
-    }
+    })();
   </script>
 </body>
 </html>
