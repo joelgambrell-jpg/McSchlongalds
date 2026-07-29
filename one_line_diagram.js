@@ -4998,7 +4998,7 @@
       : value;
   }
 
-  function applyTransform(instance) {
+    function applyTransform(instance) {
     const elements = instance.elements;
 
     if (
@@ -5060,6 +5060,195 @@
             }
           ]
         : getFitItems(instance);
+
+    if (!items.length) {
+      instance.transform = {
+        x: 20,
+        y: 20,
+        scale: 1
+      };
+
+      applyTransform(instance);
+
+      return;
+    }
+
+    const minimumX = Math.min(
+      ...items.map(
+        function mapMinimumX(item) {
+          const itemX = Number(item.x);
+
+          return Number.isFinite(itemX)
+            ? itemX
+            : 0;
+        }
+      )
+    );
+
+    const minimumY = Math.min(
+      ...items.map(
+        function mapMinimumY(item) {
+          const itemY = Number(item.y);
+
+          return Number.isFinite(itemY)
+            ? itemY
+            : 0;
+        }
+      )
+    );
+
+    const maximumX = Math.max(
+      ...items.map(
+        function mapMaximumX(item) {
+          const itemX = Number(item.x);
+          const itemWidth = Number(item.w);
+
+          return (
+            (
+              Number.isFinite(itemX)
+                ? itemX
+                : 0
+            ) +
+            (
+              Number.isFinite(itemWidth)
+                ? itemWidth
+                : 180
+            )
+          );
+        }
+      )
+    );
+
+    const maximumY = Math.max(
+      ...items.map(
+        function mapMaximumY(item) {
+          const itemY = Number(item.y);
+          const itemHeight = Number(item.h);
+
+          return (
+            (
+              Number.isFinite(itemY)
+                ? itemY
+                : 0
+            ) +
+            (
+              Number.isFinite(itemHeight)
+                ? itemHeight
+                : 100
+            )
+          );
+        }
+      )
+    );
+
+    const rectangle =
+      svg.getBoundingClientRect();
+
+    if (
+      !rectangle ||
+      rectangle.width <= 0 ||
+      rectangle.height <= 0
+    ) {
+      return;
+    }
+
+    const padding =
+      instance.mode === "view"
+        ? 45
+        : 65;
+
+    const contentWidth = Math.max(
+      1,
+      maximumX - minimumX
+    );
+
+    const contentHeight = Math.max(
+      1,
+      maximumY - minimumY
+    );
+
+    const availableWidth = Math.max(
+      1,
+      rectangle.width - padding * 2
+    );
+
+    const availableHeight = Math.max(
+      1,
+      rectangle.height - padding * 2
+    );
+
+    const calculatedScale = Math.min(
+      availableWidth / contentWidth,
+      availableHeight / contentHeight,
+      1.35
+    );
+
+    const minimumReadableScale =
+      instance.mode === "edit"
+        ? 0.55
+        : 0.35;
+
+    const safeCalculatedScale =
+      Number.isFinite(calculatedScale) &&
+      calculatedScale > 0
+        ? calculatedScale
+        : 1;
+
+    instance.transform.scale = Math.min(
+      MAX_ZOOM,
+      Math.max(
+        minimumReadableScale,
+        safeCalculatedScale
+      )
+    );
+
+    instance.transform.x =
+      (
+        rectangle.width -
+        contentWidth *
+          instance.transform.scale
+      ) /
+        2 -
+      minimumX *
+        instance.transform.scale;
+
+    instance.transform.y =
+      (
+        rectangle.height -
+        contentHeight *
+          instance.transform.scale
+      ) /
+        2 -
+      minimumY *
+        instance.transform.scale;
+
+    applyTransform(instance);
+  }
+
+  function getFitItems(instance) {
+    const visibleIds =
+      getVisibleEquipmentIds(instance);
+
+    const nodes =
+      instance.state.nodes.filter(
+        function visibleNode(node) {
+          return visibleIds.has(
+            String(node.id)
+          );
+        }
+      );
+
+    /*
+     * Only equipment nodes determine the
+     * automatic fit dimensions.
+     *
+     * Zones and text labels are intentionally
+     * excluded because a large zone or a label
+     * positioned away from the equipment can
+     * make the equipment appear extremely small.
+     */
+    return nodes;
+  }
 
     if (!items.length) {
       instance.transform = {
