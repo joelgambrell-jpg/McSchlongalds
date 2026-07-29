@@ -4999,7 +4999,7 @@
       : value;
   }
 
-    function applyTransform(instance) {
+  function applyTransform(instance) {
     const elements = instance.elements;
 
     if (
@@ -5019,10 +5019,36 @@
       instance.transform.scale +
       ")";
 
+    /*
+     * Move and scale the actual diagram equipment,
+     * connections, labels, and zones.
+     */
     elements.world.setAttribute(
       "transform",
       transformText
     );
+
+    /*
+     * Keep the drawing grid covering the entire
+     * white SVG workspace.
+     *
+     * The grid rectangle is already extremely large,
+     * so it must not receive the same transform as
+     * the equipment layer.
+     */
+    elements.grid.removeAttribute(
+      "transform"
+    );
+
+    elements.zoomLabels.forEach(
+      function updateZoomLabel(label) {
+        label.textContent =
+          Math.round(
+            instance.transform.scale * 100
+          ) + "%";
+      }
+    );
+  }
 
     elements.grid.setAttribute(
       "transform",
