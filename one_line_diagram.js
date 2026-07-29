@@ -4949,8 +4949,19 @@
 
     queueSave(instance);
     render(instance);
-  }
 
+    /*
+     * Recalculate the complete drawing bounds whenever
+     * equipment is added. As the drawing grows, the
+     * equipment automatically scales down so everything
+     * remains visible inside the white workspace.
+     */
+    requestAnimationFrame(
+      function fitAfterEquipmentDrop() {
+        fitDiagramInstance(instance);
+      }
+    );
+  }
   // ==============================================================
   // 30. ZOOM, PAN, GRID, AND FIT
   // ==============================================================
@@ -5195,25 +5206,19 @@
       1.35
     );
 
-    const minimumReadableScale =
-      instance.mode === "edit"
-        ? 0.55
-        : 0.35;
-
     const safeCalculatedScale =
       Number.isFinite(calculatedScale) &&
       calculatedScale > 0
         ? calculatedScale
         : 1;
 
-    instance.transform.scale = Math.min(
-      MAX_ZOOM,
-      Math.max(
-        minimumReadableScale,
+    instance.transform.scale = Math.max(
+      MIN_ZOOM,
+      Math.min(
+        MAX_ZOOM,
         safeCalculatedScale
       )
     );
-
     instance.transform.x =
       (
         rectangle.width -
