@@ -345,7 +345,8 @@
           createNode("3B01A", 1040, 660),
           createNode("3B02A", 900, 870),
           createNode("3B03A", 1160, 870),
-          createNode("3B04A", 1450, 870),
+          createNode("3B04A", 1450, 
+                     870),
           createNode("3B05A", 900, 1060),
           createNode("3B06A", 1160, 1060)
         ],
@@ -5330,30 +5331,20 @@
   }
 
   function getFitItems(instance) {
-    const visibleIds = getVisibleEquipmentIds(instance);
+    const visibleIds =
+      getVisibleEquipmentIds(instance);
 
-    const nodes = instance.state.nodes.filter(
-      function visibleNode(node) {
-        return visibleIds.has(String(node.id));
-      }
-    );
-
-    return [
-      ...nodes,
-      ...instance.state.zones,
-      ...instance.state.labels.map(
-        function convertLabel(label) {
-          return {
-            ...label,
-            w: 180,
-            h: 40
-          };
+    const nodes =
+      instance.state.nodes.filter(
+        function visibleNode(node) {
+          return visibleIds.has(
+            String(node.id)
+          );
         }
-      )
-    ];
-  }
+      );
 
-  function zoom(
+    return nodes;
+  }  function zoom(
     instance,
     direction,
     clientX,
