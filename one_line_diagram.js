@@ -5050,21 +5050,6 @@
     );
   }
 
-    elements.grid.setAttribute(
-      "transform",
-      transformText
-    );
-
-    elements.zoomLabels.forEach(
-      function updateZoomLabel(label) {
-        label.textContent =
-          Math.round(
-            instance.transform.scale * 100
-          ) + "%";
-      }
-    );
-  }
-
   function fitDiagramInstance(instance) {
     const svg = instance.elements.svg;
 
