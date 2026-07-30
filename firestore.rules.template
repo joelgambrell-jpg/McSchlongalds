@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function oneLineEditor() {
+      return signedIn() && (
+        request.auth.token.admin == true ||
+        request.auth.token.engineer == true ||
+        request.auth.token.oneLineEditor == true
+      );
+    }
+
+    match /projects/{projectId}/buildings/{buildingId}/oneLineDiagrams/{diagramId} {
+      allow read: if signedIn();
+      allow create, update, delete: if oneLineEditor();
+    }
+
+    /* Equipment remains owned by the existing NEXUS equipment registry.
+       Merge these conditions into the canonical project rules rather than
+       replacing broader production rules blindly. */
+    match /projects/{projectId}/equipment/{equipmentId} {
+      allow read: if signedIn();
+    }
+  }
+}
