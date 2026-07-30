@@ -61,14 +61,6 @@
 
   const db = window.firebase.firestore();
 
-  /**
-   * Adjust these collection names only if the primary NEXUS database
-   * uses a different project hierarchy. Keep all path construction in
-   * this one function so future schema changes stay isolated.
-   *
-   * Proposed layout document path:
-   * projects/{projectId}/buildings/{buildingId}/oneLineDiagrams/{diagramId}
-   */
   function getLayoutDocument(context) {
     const safe = normalizeContext(context);
 
@@ -81,14 +73,6 @@
       .doc(safe.diagramId);
   }
 
-  /**
-   * Proposed equipment collection path:
-   * projects/{projectId}/equipment
-   *
-   * The building filter assumes each equipment record contains a
-   * buildingId or building field. Change this query to match the
-   * canonical NEXUS equipment registry when Firebase is connected.
-   */
   function getEquipmentCollection(context) {
     const safe = normalizeContext(context);
 
@@ -131,21 +115,6 @@
       });
   }
 
-  /**
-   * FIREBASE LAYOUT STORAGE CONTRACT
-   * --------------------------------
-   * load(context) returns Promise<layout|null>.
-   * save(context, layout) returns Promise<void>.
-   * subscribe(context, callback) returns unsubscribe().
-   *
-   * NOTE:
-   * The current one-line engine supports synchronous localStorage.
-   * Before enabling this async Firebase adapter, update storageLoad()
-   * and storageSave() in one_line_diagram.js to await Promises, or
-   * preload the first layout before mount and rely on subscribe().
-   * This note is intentional so an engineer does not silently enable
-   * an asynchronous adapter against synchronous calls.
-   */
   const firebaseLayoutStorage = {
     async load(context) {
       const snapshot = await getLayoutDocument(context).get();
@@ -200,13 +169,6 @@
     }
   };
 
-  /**
-   * FIREBASE EQUIPMENT DATA CONTRACT
-   * --------------------------------
-   * Equipment remains owned by the NEXUS dashboard registry.
-   * The one-line viewer receives a normalized array and never writes
-   * full equipment records into diagram layout storage.
-   */
   const firebaseEquipmentDataSource = {
     async getEquipment(context) {
       const snapshot = await getEquipmentCollection(context).get();
@@ -226,6 +188,10 @@
         }
       );
     }
+  };
+
+  firebaseLayoutStorage.getBackendInfo = function getBackendInfo() {
+    return { backend: "firebase-firestore", realtime: true, enabled: true };
   };
 
   window.NexusOneLineStorage = firebaseLayoutStorage;
