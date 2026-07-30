@@ -61,14 +61,16 @@ href="one_line_diagram.css?v=8"
   Keep the Firebase adapter disabled until storageLoad/storageSave in
   one_line_diagram.js are converted to support asynchronous Promises.
 -->
-<script src="one_line_storage.js?v=8"></script>
+<script src="firebase-config.template.js?v=1"></script>
+<script src="one_line_storage.js?v=9"></script>
+<script src="one_line_auth.js?v=1"></script>
 <!-- FUTURE FIREBASE HOOK — intentionally disabled:
 <script>
   window.NEXUS_ONE_LINE_USE_FIREBASE = true;
 </script>
 <script src="one_line_firebase_adapter.js?v=1"></script>
 -->
-<script src="one_line_diagram.js?v=8"></script>
+<script src="one_line_diagram.js?v=9"></script>
 
   <script>
     (function initializeOneLineWorkspace() {
@@ -209,29 +211,21 @@ href="one_line_diagram.css?v=8"
         }
 
         try {
-          /*
-           * Do not pass an empty equipment array here.
-           *
-           * When no equipment property is supplied, the standalone
-           * editor can use the sample equipment contained inside the
-           * diagram engine.
-           *
-           * The Ohio dashboard will later pass:
-           *
-           * equipment: dashboardEquipment
-           */
-          /*
-           * EQUIPMENT DATA CONTRACT
-           * -----------------------
-           * The dashboard remains the owner of equipment records.
-           * A production NEXUS page should expose either:
-           *
-           * 1. window.NEXUS_DASHBOARD_EQUIPMENT, or
-           * 2. window.NexusOneLineDataSource.getEquipment(context)
-           *
-           * getEquipment may return an array or a Promise<Array>.
-           * Diagram storage must continue to contain layout data only.
-           */
+          const authSession = window.NexusOneLineAuth
+            ? await window.NexusOneLineAuth.waitForUser()
+            : { localDevelopment: true, claims: {} };
+
+          /* A QR viewer is always read-only. In Firebase mode, users
+             without editor claims are also forced into read-only mode. */
+          const authorizedToEdit = window.NexusOneLineAuth
+            ? window.NexusOneLineAuth.canEdit(authSession)
+            : true;
+
+          const effectiveMode =
+            requestedMode === "edit" && !authorizedToEdit
+              ? "view"
+              : requestedMode;
+
           let dashboardEquipment =
             Array.isArray(window.NEXUS_DASHBOARD_EQUIPMENT)
               ? window.NEXUS_DASHBOARD_EQUIPMENT
@@ -254,25 +248,17 @@ href="one_line_diagram.css?v=8"
 
           const mountOptions = {
             container: host,
-
-            mode: requestedMode,
-
-            viewerOnly,
-
+            mode: effectiveMode,
+            viewerOnly: viewerOnly || !authorizedToEdit,
             embedded:
               parameters.get("embedded") === "1",
-
             projectId,
-
             buildingId,
-
             diagramId,
-
             autoRefreshMs:
               requestedMode === "view"
                 ? 15000
                 : 0,
-
             onOpenEquipment: function handleOpenEquipment(
               equipmentOrId
             ) {
@@ -294,7 +280,6 @@ href="one_line_diagram.css?v=8"
                 console.warn(
                   "[NEXUS One-Line] No equipment ID was provided."
                 );
-
                 return;
               }
 
@@ -308,14 +293,12 @@ href="one_line_diagram.css?v=8"
                 "noopener,noreferrer"
               );
             },
-
             onSave: function handleDiagramSave(saveResult) {
               console.info(
                 "[NEXUS One-Line] Diagram saved.",
                 saveResult
               );
             },
-
             onError: function handleDiagramError(error) {
               console.error(
                 "[NEXUS One-Line] Component error:",
@@ -332,11 +315,6 @@ href="one_line_diagram.css?v=8"
             mountOptions
           );
 
-          /*
-           * Optional real-time equipment subscription. This is separate
-           * from layout subscription because dashboard equipment records
-           * and diagram layout have different owners.
-           */
           if (
             dataSource &&
             typeof dataSource.subscribeEquipment === "function"
@@ -352,12 +330,6 @@ href="one_line_diagram.css?v=8"
               );
           }
 
-          /*
-           * Keep a reference available for browser-console testing.
-           *
-           * Example:
-           * window.nexusOneLineWorkspace.fitDiagram()
-           */
           window.nexusOneLineWorkspace =
             controller || null;
 
