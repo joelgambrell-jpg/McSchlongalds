@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <meta
+    http-equiv="Cache-Control"
+    content="no-cache, no-store, must-revalidate"
+  />
+
+  <meta
+    http-equiv="Pragma"
+    content="no-cache"
+  />
+
+  <meta
+    http-equiv="Expires"
+    content="0"
+  />
+
+  <title>NEXUS One-Line Diagram</title>
+
+  <link
+    rel="stylesheet"
+href="one_line_diagram.css?v=8"
+  />
+</head>
+
+<body class="one-line-standalone-page">
+
+  <main
+    id="oneLineWorkspaceHost"
+    class="one-line-host"
+    aria-label="NEXUS One-Line Diagram"
+  >
+    <section
+      id="oneLineLoadingState"
+      class="one-line-loading-state"
+      role="status"
+      aria-live="polite"
+    >
+      <h1>NEXUS One-Line Workspace</h1>
+      <p>Loading the diagram editor...</p>
+    </section>
+  </main>
+
+<!--
+  ACTIVE STORAGE ORDER
+  --------------------
+  1. one_line_storage.js provides the current localStorage adapter.
+  2. During the Firebase migration, initialize Firebase/authentication,
+     set window.NEXUS_ONE_LINE_USE_FIREBASE = true, and load the future
+     one_line_firebase_adapter.js here.
+  3. one_line_diagram.js consumes whichever adapter is active.
+
+  Keep the Firebase adapter disabled until storageLoad/storageSave in
+  one_line_diagram.js are converted to support asynchronous Promises.
+-->
+<script src="one_line_storage.js?v=8"></script>
+<!-- FUTURE FIREBASE HOOK — intentionally disabled:
+<script>
+  window.NEXUS_ONE_LINE_USE_FIREBASE = true;
+</script>
+<script src="one_line_firebase_adapter.js?v=1"></script>
+-->
+<script src="one_line_diagram.js?v=8"></script>
+
+  <script>
+    (function initializeOneLineWorkspace() {
+      "use strict";
+
+      function showStartupFailure(message, error) {
+        const host = document.getElementById(
+          "oneLineWorkspaceHost"
+        );
+
+        if (error) {
+          console.error(
+            "[NEXUS One-Line] Startup failure:",
+            error
+          );
+        }
+
+        if (!host) {
+          return;
+        }
+
+        host.innerHTML = "";
+
+        const panel = document.createElement("section");
+        panel.className = "one-line-startup-error";
+        panel.setAttribute("role", "alert");
+
+        const heading = document.createElement("h1");
+        heading.textContent =
+          "One-Line Workspace Unavailable";
+
+        const description = document.createElement("p");
+        description.textContent = message;
+
+        const fileHelp = document.createElement("p");
+        fileHelp.textContent =
+          "Required files: one_line_diagram.html, " +
+          "one_line_diagram.css, one_line_diagram.js, " +
+          "and one_line_storage.js.";
+
+        const consoleHelp = document.createElement("p");
+        consoleHelp.textContent =
+          "Press F12 and open the Console tab for the exact error.";
+
+        panel.appendChild(heading);
+        panel.appendChild(description);
+        panel.appendChild(fileHelp);
+        panel.appendChild(consoleHelp);
+
+        host.appendChild(panel);
+      }
+
+      async function startWorkspace() {
+        const host = document.getElementById(
+          "oneLineWorkspaceHost"
+        );
+
+        /*
+         * URL CONTRACT
+         * ------------
+         * mode=edit opens the engineering workspace.
+         * mode=view opens the compact read-only viewer.
+         * viewer=1 removes the Open Workspace button and is intended
+         * for phase-door QR codes.
+         *
+         * Example viewer URL:
+         * one_line_diagram.html?mode=view&viewer=1&project=Ohio&
+         * building=A&diagram=phase-2
+         */
+        const parameters = new URLSearchParams(
+          window.location.search
+        );
+
+        const requestedMode =
+          parameters.get("mode") === "view"
+            ? "view"
+            : "edit";
+
+        const viewerOnly =
+          requestedMode === "view" &&
+          parameters.get("viewer") === "1";
+
+        const projectId =
+          parameters.get("project") ||
+          "sample-project";
+
+        const buildingId =
+          parameters.get("building") ||
+          "A";
+
+        const diagramId =
+          parameters.get("diagram") ||
+          "overall";
+
+        document.body.classList.toggle(
+          "one-line-viewer-page",
+          requestedMode === "view"
+        );
+
+        document.title =
+          requestedMode === "view"
+            ? "NEXUS One-Line Viewer"
+            : "NEXUS One-Line Workspace";
+
+        if (!host) {
+          console.error(
+            "[NEXUS One-Line] Workspace host was not found."
+          );
+
+          return;
+        }
+
+        if (
+          !window.NexusOneLineStorage ||
+          typeof window.NexusOneLineStorage.load !== "function" ||
+          typeof window.NexusOneLineStorage.save !== "function"
+        ) {
+          showStartupFailure(
+            "The diagram storage system could not be loaded. " +
+            "Confirm that one_line_storage.js is in the same folder."
+          );
+
+          return;
+        }
+
+        if (
+          !window.NEXUS ||
+          !window.NEXUS.OneLine ||
+          typeof window.NEXUS.OneLine.mount !== "function"
+        ) {
+          showStartupFailure(
+            "The One-Line diagram engine could not be loaded. " +
+            "Confirm that one_line_diagram.js is in the same folder " +
+            "and contains window.NEXUS.OneLine.mount()."
+          );
+
+          return;
+        }
+
+        try {
+          /*
+           * Do not pass an empty equipment array here.
+           *
+           * When no equipment property is supplied, the standalone
+           * editor can use the sample equipment contained inside the
+           * diagram engine.
+           *
+           * The Ohio dashboard will later pass:
+           *
+           * equipment: dashboardEquipment
+           */
+          /*
+           * EQUIPMENT DATA CONTRACT
+           * -----------------------
+           * The dashboard remains the owner of equipment records.
+           * A production NEXUS page should expose either:
+           *
+           * 1. window.NEXUS_DASHBOARD_EQUIPMENT, or
+           * 2. window.NexusOneLineDataSource.getEquipment(context)
+           *
+           * getEquipment may return an array or a Promise<Array>.
+           * Diagram storage must continue to contain layout data only.
+           */
+          let dashboardEquipment =
+            Array.isArray(window.NEXUS_DASHBOARD_EQUIPMENT)
+              ? window.NEXUS_DASHBOARD_EQUIPMENT
+              : null;
+
+          const dataSource =
+            window.NexusOneLineDataSource;
+
+          if (
+            !dashboardEquipment &&
+            dataSource &&
+            typeof dataSource.getEquipment === "function"
+          ) {
+            dashboardEquipment = await dataSource.getEquipment({
+              projectId,
+              buildingId,
+              diagramId
+            });
+          }
+
+          const mountOptions = {
+            container: host,
+
+            mode: requestedMode,
+
+            viewerOnly,
+
+            embedded:
+              parameters.get("embedded") === "1",
+
+            projectId,
+
+            buildingId,
+
+            diagramId,
+
+            autoRefreshMs:
+              requestedMode === "view"
+                ? 15000
+                : 0,
+
+            onOpenEquipment: function handleOpenEquipment(
+              equipmentOrId
+            ) {
+              let equipmentId = "";
+
+              if (typeof equipmentOrId === "string") {
+                equipmentId = equipmentOrId;
+              } else if (
+                equipmentOrId &&
+                typeof equipmentOrId === "object"
+              ) {
+                equipmentId =
+                  equipmentOrId.equipmentId ||
+                  equipmentOrId.id ||
+                  "";
+              }
+
+              if (!equipmentId) {
+                console.warn(
+                  "[NEXUS One-Line] No equipment ID was provided."
+                );
+
+                return;
+              }
+
+              const url =
+                "equipment.html?eq=" +
+                encodeURIComponent(equipmentId);
+
+              window.open(
+                url,
+                "_blank",
+                "noopener,noreferrer"
+              );
+            },
+
+            onSave: function handleDiagramSave(saveResult) {
+              console.info(
+                "[NEXUS One-Line] Diagram saved.",
+                saveResult
+              );
+            },
+
+            onError: function handleDiagramError(error) {
+              console.error(
+                "[NEXUS One-Line] Component error:",
+                error
+              );
+            }
+          };
+
+          if (Array.isArray(dashboardEquipment)) {
+            mountOptions.equipment = dashboardEquipment;
+          }
+
+          const controller = window.NEXUS.OneLine.mount(
+            mountOptions
+          );
+
+          /*
+           * Optional real-time equipment subscription. This is separate
+           * from layout subscription because dashboard equipment records
+           * and diagram layout have different owners.
+           */
+          if (
+            dataSource &&
+            typeof dataSource.subscribeEquipment === "function"
+          ) {
+            window.nexusOneLineEquipmentUnsubscribe =
+              dataSource.subscribeEquipment(
+                { projectId, buildingId, diagramId },
+                function handleEquipmentUpdate(equipment) {
+                  if (Array.isArray(equipment)) {
+                    controller.setEquipment(equipment);
+                  }
+                }
+              );
+          }
+
+          /*
+           * Keep a reference available for browser-console testing.
+           *
+           * Example:
+           * window.nexusOneLineWorkspace.fitDiagram()
+           */
+          window.nexusOneLineWorkspace =
+            controller || null;
+
+          const loadingState = document.getElementById(
+            "oneLineLoadingState"
+          );
+
+          if (
+            loadingState &&
+            loadingState.isConnected
+          ) {
+            loadingState.remove();
+          }
+
+          console.info(
+            "[NEXUS One-Line] Workspace mounted successfully."
+          );
+        } catch (error) {
+          showStartupFailure(
+            "The One-Line workspace could not start.",
+            error
+          );
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener(
+          "DOMContentLoaded",
+          startWorkspace,
+          { once: true }
+        );
+      } else {
+        startWorkspace();
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NEXUS One-Line Viewer QR</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #eef0f3;
+      color: #111;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .sheet {
+      width: min(760px, 100%);
+      background: #fff;
+      border: 2px solid #111;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .brand {
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 3px;
+    }
+
+    .brand span { color: #c71920; }
+
+    h1 {
+      margin: 10px 0 6px;
+      font-size: 26px;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      font-weight: 700;
+    }
+
+    #qrcode {
+      width: 320px;
+      min-height: 320px;
+      margin: 18px auto;
+      display: grid;
+      place-items: center;
+    }
+
+    #qrcode img,
+    #qrcode canvas {
+      max-width: 100%;
+      height: auto !important;
+    }
+
+    .instruction {
+      font-size: 20px;
+      font-weight: 800;
+      margin: 18px 0 6px;
+    }
+
+    .security-note {
+      margin: 8px auto 20px;
+      max-width: 560px;
+      color: #444;
+      line-height: 1.45;
+    }
+
+    .viewer-url {
+      width: 100%;
+      min-height: 76px;
+      resize: vertical;
+      border: 1px solid #777;
+      border-radius: 7px;
+      padding: 10px;
+      font: 13px/1.4 Consolas, monospace;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    button,
+    a.button {
+      appearance: none;
+      border: 1px solid #111;
+      border-radius: 7px;
+      background: #fff;
+      color: #111;
+      padding: 12px 18px;
+      font: inherit;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: #c71920;
+      color: #fff;
+      border-color: #c71920;
+    }
+
+    .error {
+      padding: 18px;
+      border: 2px solid #c71920;
+      color: #8b1116;
+      font-weight: 700;
+    }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .sheet { border: none; width: 100%; }
+      .actions, .viewer-url { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <div class="brand">NE<span>X</span>US</div>
+    <h1>Live One-Line Diagram</h1>
+    <p id="diagramLabel" class="subtitle"></p>
+
+    <div id="qrcode" aria-label="QR code for the viewer-only one-line diagram"></div>
+
+    <p class="instruction">Scan to view the current diagram</p>
+    <p class="security-note">
+      Viewer-only access still requires normal NEXUS system authorization.
+      The QR code does not contain a password, login token, or editing permission.
+    </p>
+
+    <label for="viewerUrl"><strong>Viewer URL</strong></label>
+    <textarea id="viewerUrl" class="viewer-url" readonly></textarea>
+
+    <div class="actions">
+      <button id="printButton" class="primary" type="button">Print Door Sign</button>
+      <button id="copyButton" type="button">Copy Viewer Link</button>
+      <a id="openViewer" class="button" target="_blank" rel="noopener noreferrer">Open Viewer</a>
+    </div>
+  </main>
+
+  <!--
+    QRCode.js 1.0.0 is loaded from jsDelivr with an exact version.
+    It has no runtime dependencies. For a fully offline installation,
+    download qrcode.min.js into this folder and change the src below.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script>
+    (function initializeViewerQr() {
+      "use strict";
+
+      const parameters = new URLSearchParams(window.location.search);
+      const projectId = parameters.get("project") || "Project";
+      const buildingId = parameters.get("building") || "A";
+      const diagramId = parameters.get("diagram") || "overall";
+      const suppliedViewerUrl = parameters.get("viewerUrl");
+
+      const fallbackParameters = new URLSearchParams({
+        mode: "view",
+        viewer: "1",
+        project: projectId,
+        building: buildingId,
+        diagram: diagramId
+      });
+
+      const viewerUrl = suppliedViewerUrl || new URL(
+        "one_line_diagram.html?" + fallbackParameters.toString(),
+        window.location.href
+      ).href;
+
+      const label = document.getElementById("diagramLabel");
+      const urlField = document.getElementById("viewerUrl");
+      const qrHost = document.getElementById("qrcode");
+      const openViewer = document.getElementById("openViewer");
+
+      label.textContent =
+        projectId + " • Building " + buildingId + " • " +
+        diagramId.replace(/-/g, " ").replace(/\b\w/g, function (letter) {
+          return letter.toUpperCase();
+        });
+
+      urlField.value = viewerUrl;
+      openViewer.href = viewerUrl;
+
+      if (typeof window.QRCode !== "function") {
+        qrHost.innerHTML =
+          '<div class="error">QR generator could not load. The viewer link below is still valid.</div>';
+      } else {
+        new window.QRCode(qrHost, {
+          text: viewerUrl,
+          width: 320,
+          height: 320,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: window.QRCode.CorrectLevel.H
+        });
+      }
+
+      document.getElementById("printButton").addEventListener(
+        "click",
+        function printDoorSign() {
+          window.print();
+        }
+      );
+
+      document.getElementById("copyButton").addEventListener(
+        "click",
+        async function copyViewerLink(event) {
+          try {
+            await navigator.clipboard.writeText(viewerUrl);
+            event.currentTarget.textContent = "Copied";
+          } catch (error) {
+            urlField.focus();
+            urlField.select();
+            event.currentTarget.textContent = "Select and Copy";
+          }
+        }
+      );
+    })();
+  </script>
+</body>
+</html>
