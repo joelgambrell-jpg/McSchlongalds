@@ -182,6 +182,14 @@
       cleanup.dataset.nxCompletionCleanup = "1";
       document.head.appendChild(cleanup);
     }
+
+    if (!document.querySelector('script[data-nx-sidebar-completion-cleanup="1"]')) {
+      const sidebarCleanup = document.createElement("script");
+      sidebarCleanup.src = "one_line_sidebar_completion_cleanup.js?v=1";
+      sidebarCleanup.defer = true;
+      sidebarCleanup.dataset.nxSidebarCompletionCleanup = "1";
+      document.head.appendChild(sidebarCleanup);
+    }
   }
 
   function scan() {
