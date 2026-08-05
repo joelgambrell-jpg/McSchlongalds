@@ -58,8 +58,12 @@
      - neon field/QR presentation
      - readiness colors
      - engineer/SME-only energized control
+  6. one_line_readiness_hotfix.js reads the percentage already rendered
+     by the core engine so internal sample equipment and dashboard equipment
+     receive the correct neon color even when no equipment array was passed
+     into mount().
 
-  The readiness module does not replace the diagram engine and does not
+  The readiness modules do not replace the diagram engine and do not
   remove any existing editor behavior.
 -->
 <script src="firebase-config.template.js?v=1"></script>
@@ -73,6 +77,7 @@
 -->
 <script src="one_line_diagram.js?v=10"></script>
 <script src="one_line_readiness.js?v=1"></script>
+<script src="one_line_readiness_hotfix.js?v=1"></script>
 
   <script>
     (function initializeOneLineWorkspace() {
@@ -111,8 +116,8 @@
         fileHelp.textContent =
           "Required files: one_line_diagram.html, " +
           "one_line_diagram.css, one_line_diagram.js, " +
-          "one_line_readiness.css, one_line_readiness.js, and " +
-          "one_line_storage.js.";
+          "one_line_readiness.css, one_line_readiness.js, " +
+          "one_line_readiness_hotfix.js, and one_line_storage.js.";
 
         const consoleHelp = document.createElement("p");
         consoleHelp.textContent =
