@@ -1,22 +1,21 @@
 /**
- * NEXUS ONE-LINE UNPLACED EQUIPMENT POOL
- * =======================================
+ * NEXUS ONE-LINE EQUIPMENT POOL SIMPLIFICATION
+ * =============================================
  * Engineering/setup page only.
  *
- * Purpose:
- * - Rename "Equipment Pool" to "Unplaced Equipment".
- * - Remove the Placed tab from the placement workflow.
- * - Keep the existing All and Unplaced controls operational.
- * - Never show equipment already placed on the active diagram.
- * - Preserve Mini Map, Properties, diagram tools, drag/drop, storage,
- *   equipment deletion, and all existing renderer behavior.
+ * Keeps the core renderer's original, proven tab behavior:
+ * - All shows every equipment record, including placed equipment.
+ * - Unplaced shows only equipment not yet placed on the active diagram.
  *
- * IMPORTANT:
- * The core renderer still owns tab selection, search, phase filtering,
- * drag/drop, and list rendering. This adapter only removes the Placed tab
- * and hides placed cards after the core renderer has applied its own filter.
+ * This additive adapter only:
+ * - Renames "Equipment Pool" to "Unplaced Equipment".
+ * - Removes the separate Placed tab.
+ *
+ * It deliberately does not hide pool items, change counts, force the active
+ * tab, or replace the core renderer's filtering. Mini Map, Properties,
+ * drag/drop, selection, storage, and diagram behavior remain untouched.
  */
-(function initializeNexusUnplacedEquipmentPool() {
+(function initializeNexusEquipmentPoolSimplification() {
   "use strict";
 
   function isEditorPage() {
@@ -24,48 +23,29 @@
     return parameters.get("mode") !== "view";
   }
 
-  function text(value) {
+  function normalizedText(value) {
     return String(value || "").trim().toLowerCase();
-  }
-
-  function isPlacedItem(item) {
-    if (!item) return false;
-
-    if (
-      item.classList.contains("placed") ||
-      item.dataset.placed === "true" ||
-      item.getAttribute("aria-placed") === "true"
-    ) {
-      return true;
-    }
-
-    const statusText = text(item.textContent);
-    return /(?:^|[\s•·-])placed(?:$|[\s•·-])/.test(statusText) &&
-      !statusText.includes("unplaced");
   }
 
   function renamePanel(pool) {
     const header = pool.querySelector(".panel-head");
     if (!header) return;
 
-    Array.from(header.childNodes).forEach(function replaceTextNode(node) {
+    Array.from(header.childNodes).forEach(function renameTextNode(node) {
       if (
         node.nodeType === Node.TEXT_NODE &&
-        text(node.textContent).includes("equipment pool")
+        /equipment pool/i.test(String(node.textContent || ""))
       ) {
-        node.textContent = node.textContent.replace(
+        node.textContent = String(node.textContent).replace(
           /Equipment Pool/gi,
           "Unplaced Equipment"
         );
       }
     });
 
-    const heading = header.querySelector(
-      "h1,h2,h3,h4,strong,span:not(.count)"
-    );
-
-    if (heading && text(heading.textContent).includes("equipment pool")) {
-      heading.textContent = heading.textContent.replace(
+    const heading = header.querySelector("h1,h2,h3,h4,strong,span:not(.count)");
+    if (heading && /equipment pool/i.test(String(heading.textContent || ""))) {
+      heading.textContent = String(heading.textContent).replace(
         /Equipment Pool/gi,
         "Unplaced Equipment"
       );
@@ -74,78 +54,32 @@
 
   function removePlacedTab(pool) {
     Array.from(pool.querySelectorAll(".pool-tab")).forEach(
-      function updateTab(tab) {
-        if (text(tab.textContent) === "placed") {
+      function inspectTab(tab) {
+        if (normalizedText(tab.textContent) === "placed") {
           tab.remove();
         }
       }
     );
-
-    /*
-     * Do not assign the active tab here.
-     * The diagram engine already manages All/Unplaced click state and its
-     * own filters. Forcing Unplaced active after each DOM mutation was the
-     * reason the All tab appeared not to work.
-     */
-  }
-
-  function filterPlacedItems(pool) {
-    const items = Array.from(pool.querySelectorAll(".pool-item"));
-    let visibleUnplacedCount = 0;
-
-    items.forEach(function updateItem(item) {
-      const placed = isPlacedItem(item);
-
-      if (placed) {
-        item.hidden = true;
-        item.classList.add("nx-pool-item-hidden");
-      } else {
-        /* Respect the core renderer's filtering. Only remove the hidden
-         * state that this adapter previously applied itself. */
-        if (item.classList.contains("nx-pool-item-hidden")) {
-          item.hidden = false;
-          item.classList.remove("nx-pool-item-hidden");
-        }
-
-        if (!item.hidden) {
-          visibleUnplacedCount += 1;
-        }
-      }
-    });
-
-    const count = pool.querySelector(".panel-head .count");
-    if (count) {
-      count.textContent = String(visibleUnplacedCount);
-      count.setAttribute(
-        "aria-label",
-        visibleUnplacedCount + " visible unplaced equipment items"
-      );
-    }
-
-    pool.dataset.unplacedCount = String(visibleUnplacedCount);
   }
 
   function install(pool) {
-    if (!pool || pool.dataset.unplacedPoolInstalled === "1") return;
+    if (!pool || pool.dataset.poolSimplificationInstalled === "1") return;
 
-    pool.dataset.unplacedPoolInstalled = "1";
+    pool.dataset.poolSimplificationInstalled = "1";
     pool.classList.add("nx-unplaced-equipment-pool");
 
     renamePanel(pool);
     removePlacedTab(pool);
-    filterPlacedItems(pool);
 
     let queued = false;
-
-    const refresh = function refreshPool() {
+    const refresh = function refreshPresentationOnly() {
       if (queued) return;
       queued = true;
 
-      window.requestAnimationFrame(function applyPoolRules() {
+      window.requestAnimationFrame(function applyPresentationOnly() {
         queued = false;
         renamePanel(pool);
         removePlacedTab(pool);
-        filterPlacedItems(pool);
       });
     };
 
@@ -153,15 +87,7 @@
     observer.observe(pool, {
       childList: true,
       subtree: true,
-      characterData: true,
-      attributes: true,
-      attributeFilter: [
-        "class",
-        "hidden",
-        "data-placed",
-        "aria-placed",
-        "aria-selected"
-      ]
+      characterData: true
     });
   }
 
