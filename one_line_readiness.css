@@ -2,8 +2,8 @@
  * NEXUS ONE-LINE READINESS PRESENTATION
  * -------------------------------------
  * Additive styles only. The existing white Bluebeam-style editor and
- * desktop dashboard remain unchanged. These rules activate only when
- * one_line_readiness.js adds .nexus-field-readiness to the mounted root.
+ * desktop dashboard remain unchanged except for stronger phase markings,
+ * which are intentionally improved on every presentation.
  */
 
 .nexus-field-readiness {
@@ -79,6 +79,159 @@ body.nexus-field-readiness-page {
   filter: drop-shadow(0 0 9px var(--nx-readiness-color, var(--nx-ready-gray)));
 }
 
+/*
+ * PHASE IDENTIFICATION — ALL VIEWS
+ * --------------------------------
+ * Phase zones are deliberately stronger on the setup page, dashboard,
+ * and field viewer so the active work area is unmistakable.
+ */
+.nexus-one-line .zone rect {
+  stroke: var(--nx-phase-color, #69727d) !important;
+  stroke-width: 4px !important;
+  stroke-dasharray: 13 7 !important;
+  fill: color-mix(in srgb, var(--nx-phase-color, #69727d) 7%, transparent) !important;
+}
+
+.nexus-one-line .zone text {
+  fill: var(--nx-phase-color, #40464d) !important;
+  font-size: 30px !important;
+  font-weight: 900 !important;
+  letter-spacing: 1px;
+  paint-order: stroke;
+  stroke: rgba(255,255,255,.78);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+}
+
+.nexus-field-readiness .zone rect {
+  stroke-width: 5px !important;
+  fill: color-mix(in srgb, var(--nx-phase-color, #69727d) 6%, #05080d) !important;
+  filter: drop-shadow(0 0 4px var(--nx-phase-color, #69727d));
+}
+
+.nexus-field-readiness .zone text {
+  fill: var(--nx-phase-color, #b8c2ce) !important;
+  font-size: 34px !important;
+  stroke: #05080d;
+  stroke-width: 5px;
+  filter: drop-shadow(0 0 5px var(--nx-phase-color, #69727d));
+}
+
+/* Large-display project/building identity banner — field view only. */
+.nx-display-identity {
+  min-height: 94px;
+  display: grid;
+  grid-template-columns: minmax(180px, .8fr) minmax(240px, 1fr) minmax(360px, 2fr) auto;
+  align-items: center;
+  gap: 22px;
+  padding: 12px 22px;
+  background: linear-gradient(180deg, #080b11 0%, #04070b 100%);
+  border-bottom: 2px solid #314157;
+  color: #f7fbff;
+}
+
+.nx-display-brand > span {
+  display: block;
+  font-size: clamp(28px, 2.1vw, 46px);
+  line-height: .9;
+  font-weight: 950;
+  letter-spacing: 3px;
+}
+
+.nx-brand-x {
+  color: #ff4b20;
+}
+
+.nx-display-brand small,
+.nx-display-project small {
+  display: block;
+  margin-top: 7px;
+  color: #cbd4df;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.nx-display-project {
+  min-width: 0;
+}
+
+.nx-project-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ffffff;
+  font-size: clamp(18px, 1.45vw, 29px);
+  font-weight: 900;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+.nx-project-id {
+  display: block;
+  margin-top: 3px;
+  color: #00e5ff;
+  font-size: clamp(20px, 1.7vw, 34px);
+  font-weight: 950;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(0,229,255,.35);
+}
+
+.nx-display-building {
+  min-width: 0;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.nx-display-building strong {
+  display: inline;
+  color: #ff39d1;
+  font-size: clamp(30px, 3.1vw, 62px);
+  line-height: .95;
+  font-weight: 950;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(255,57,209,.32);
+}
+
+.nx-display-building span {
+  display: inline;
+  margin-left: 12px;
+  color: #f7fbff;
+  font-size: clamp(22px, 2.25vw, 44px);
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.nx-display-state {
+  min-width: 142px;
+  padding: 10px 16px;
+  border: 2px solid #00f56a;
+  border-radius: 8px;
+  text-align: center;
+  color: #00f56a;
+  box-shadow: inset 0 0 16px rgba(0,245,106,.06), 0 0 10px rgba(0,245,106,.12);
+}
+
+.nx-display-state strong,
+.nx-display-state span {
+  display: block;
+}
+
+.nx-display-state strong {
+  font-size: 17px;
+  letter-spacing: 1px;
+}
+
+.nx-display-state span {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
 .nx-readiness-legend {
   display: flex;
   flex-wrap: wrap;
@@ -135,8 +288,27 @@ body.nexus-field-readiness-page {
 .nx-energization-panel button:disabled { opacity: .45; cursor: not-allowed; }
 .nx-energization-audit { margin-top: 8px; color: #aaa; font-size: 11px; }
 
+@media (max-width: 1050px) {
+  .nx-display-identity {
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+  }
+  .nx-display-project { display: none; }
+  .nx-display-building { text-align: left; }
+}
+
 @media (max-width: 800px) {
   .nexus-field-readiness .node .id { font-size: 17px !important; }
   .nexus-field-readiness .node .type { font-size: 13px !important; }
   .nx-readiness-legend { font-size: 11px; }
+  .nx-display-identity {
+    min-height: 72px;
+    grid-template-columns: 1fr auto;
+    padding: 9px 12px;
+  }
+  .nx-display-brand { display: none; }
+  .nx-display-building strong { font-size: 28px; }
+  .nx-display-building span { font-size: 20px; }
+  .nx-display-state { min-width: 112px; padding: 7px 10px; }
+  .nexus-one-line .zone text { font-size: 25px !important; }
 }
