@@ -174,6 +174,14 @@
       script.dataset.nxSmartTools = "1";
       document.head.appendChild(script);
     }
+
+    if (!document.querySelector('script[data-nx-completion-cleanup="1"]')) {
+      const cleanup = document.createElement("script");
+      cleanup.src = "one_line_completion_key_cleanup.js?v=1";
+      cleanup.defer = true;
+      cleanup.dataset.nxCompletionCleanup = "1";
+      document.head.appendChild(cleanup);
+    }
   }
 
   function scan() {
