@@ -1,0 +1,142 @@
+/*
+ * NEXUS ONE-LINE READINESS PRESENTATION
+ * -------------------------------------
+ * Additive styles only. The existing white Bluebeam-style editor and
+ * desktop dashboard remain unchanged. These rules activate only when
+ * one_line_readiness.js adds .nexus-field-readiness to the mounted root.
+ */
+
+.nexus-field-readiness {
+  --nx-ready-gray: #8b929b;
+  --nx-ready-blue: #1f7dff;
+  --nx-ready-orange: #ff7a00;
+  --nx-ready-yellow: #ffe600;
+  --nx-ready-green: #00f56a;
+  --nx-ready-red: #ff2438;
+  background: #05080d !important;
+  color: #f7fbff;
+}
+
+body.nexus-field-readiness-page {
+  background: #05080d !important;
+}
+
+.nexus-field-readiness .nx-header,
+.nexus-field-readiness .control-strip,
+.nexus-field-readiness .canvas-toolbar,
+.nexus-field-readiness .status-bar {
+  background: #070b12 !important;
+  border-color: #243247 !important;
+}
+
+.nexus-field-readiness .canvas-wrap,
+.nexus-field-readiness .canvas-viewport {
+  background: #05080d !important;
+}
+
+.nexus-field-readiness #diagramSvg {
+  background: #05080d !important;
+}
+
+.nexus-field-readiness #gridRect {
+  opacity: .13;
+}
+
+.nexus-field-readiness .node .body {
+  fill: #071018 !important;
+  stroke: var(--nx-readiness-color, var(--nx-ready-gray)) !important;
+  stroke-width: 4px !important;
+  filter: drop-shadow(0 0 4px var(--nx-readiness-color, var(--nx-ready-gray)))
+          drop-shadow(0 0 11px var(--nx-readiness-color, var(--nx-ready-gray)));
+}
+
+.nexus-field-readiness .node .symbol {
+  stroke: var(--nx-readiness-color, var(--nx-ready-gray)) !important;
+  stroke-width: 3px !important;
+}
+
+.nexus-field-readiness .node text {
+  fill: #f7fbff !important;
+  text-shadow: 0 0 5px rgba(255,255,255,.35);
+}
+
+.nexus-field-readiness .node .pct {
+  fill: var(--nx-readiness-color, var(--nx-ready-gray)) !important;
+  font-size: 14px !important;
+}
+
+.nexus-field-readiness .connection {
+  stroke: var(--nx-readiness-color, var(--nx-ready-gray)) !important;
+  stroke-width: 4px !important;
+  filter: drop-shadow(0 0 3px var(--nx-readiness-color, var(--nx-ready-gray)))
+          drop-shadow(0 0 9px var(--nx-readiness-color, var(--nx-ready-gray)));
+}
+
+.nexus-field-readiness .phase-summary rect {
+  fill: #071018 !important;
+  stroke: var(--nx-readiness-color, var(--nx-ready-gray)) !important;
+  stroke-width: 4px !important;
+  filter: drop-shadow(0 0 9px var(--nx-readiness-color, var(--nx-ready-gray)));
+}
+
+.nx-readiness-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: #070b12;
+  border-bottom: 1px solid #243247;
+  color: #dce8f5;
+  font-size: 12px;
+}
+
+.nx-readiness-legend strong { margin-right: 4px; }
+.nx-readiness-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid #34445c;
+  border-radius: 999px;
+  background: #0b111b;
+}
+.nx-readiness-chip i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--chip-color);
+  box-shadow: 0 0 8px var(--chip-color);
+}
+
+.nx-energization-panel {
+  margin: 12px;
+  padding: 12px;
+  border: 1px solid #4b4b50;
+  border-radius: 9px;
+  background: #101013;
+}
+.nx-energization-panel h3 { margin: 0 0 6px; font-size: 14px; }
+.nx-energization-panel p { margin: 0 0 10px; color: #bbb; font-size: 12px; line-height: 1.4; }
+.nx-energization-panel button {
+  width: 100%;
+  border: 1px solid #e43a48;
+  border-radius: 7px;
+  background: #75121c;
+  color: #fff;
+  padding: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.nx-energization-panel button[data-state="energized"] {
+  background: #29292d;
+  border-color: #777;
+}
+.nx-energization-panel button:disabled { opacity: .45; cursor: not-allowed; }
+.nx-energization-audit { margin-top: 8px; color: #aaa; font-size: 11px; }
+
+@media (max-width: 800px) {
+  .nexus-field-readiness .node .id { font-size: 17px !important; }
+  .nexus-field-readiness .node .type { font-size: 13px !important; }
+  .nx-readiness-legend { font-size: 11px; }
+}
