@@ -6,12 +6,15 @@
  * Purpose:
  * - Rename "Equipment Pool" to "Unplaced Equipment".
  * - Remove the Placed tab from the placement workflow.
- * - Keep only All and Unplaced controls.
+ * - Keep the existing All and Unplaced controls operational.
  * - Never show equipment already placed on the active diagram.
  * - Preserve Mini Map, Properties, diagram tools, drag/drop, storage,
  *   equipment deletion, and all existing renderer behavior.
  *
- * This is an additive DOM adapter so the core renderer remains unchanged.
+ * IMPORTANT:
+ * The core renderer still owns tab selection, search, phase filtering,
+ * drag/drop, and list rendering. This adapter only removes the Placed tab
+ * and hides placed cards after the core renderer has applied its own filter.
  */
 (function initializeNexusUnplacedEquipmentPool() {
   "use strict";
@@ -45,89 +48,95 @@
     const header = pool.querySelector(".panel-head");
     if (!header) return;
 
-    const candidates = Array.from(header.childNodes).filter(function findTextNode(node) {
-      return node.nodeType === Node.TEXT_NODE && text(node.textContent).includes("equipment pool");
+    Array.from(header.childNodes).forEach(function replaceTextNode(node) {
+      if (
+        node.nodeType === Node.TEXT_NODE &&
+        text(node.textContent).includes("equipment pool")
+      ) {
+        node.textContent = node.textContent.replace(
+          /Equipment Pool/gi,
+          "Unplaced Equipment"
+        );
+      }
     });
 
-    candidates.forEach(function replaceText(node) {
-      node.textContent = node.textContent.replace(/Equipment Pool/gi, "Unplaced Equipment");
-    });
+    const heading = header.querySelector(
+      "h1,h2,h3,h4,strong,span:not(.count)"
+    );
 
-    const heading = header.querySelector("h1,h2,h3,h4,strong,span:not(.count)");
     if (heading && text(heading.textContent).includes("equipment pool")) {
-      heading.textContent = heading.textContent.replace(/Equipment Pool/gi, "Unplaced Equipment");
+      heading.textContent = heading.textContent.replace(
+        /Equipment Pool/gi,
+        "Unplaced Equipment"
+      );
     }
   }
 
-  function simplifyTabs(pool) {
-    const tabs = Array.from(pool.querySelectorAll(".pool-tab"));
-
-    tabs.forEach(function updateTab(tab) {
-      const label = text(tab.textContent);
-
-      if (label === "placed") {
-        tab.remove();
-        return;
+  function removePlacedTab(pool) {
+    Array.from(pool.querySelectorAll(".pool-tab")).forEach(
+      function updateTab(tab) {
+        if (text(tab.textContent) === "placed") {
+          tab.remove();
+        }
       }
+    );
 
-      if (label === "all" || label === "unplaced") {
-        tab.hidden = false;
-        tab.removeAttribute("aria-hidden");
-
-        tab.addEventListener("click", function forceUnplacedView() {
-          window.requestAnimationFrame(function refreshAfterTabClick() {
-            filterPlacedItems(pool);
-          });
-        });
-      }
-    });
-
-    const remaining = Array.from(pool.querySelectorAll(".pool-tab"));
-    if (remaining.length) {
-      const active = remaining.find(function findUnplaced(tab) {
-        return text(tab.textContent) === "unplaced";
-      }) || remaining[0];
-
-      remaining.forEach(function setActive(tab) {
-        tab.classList.toggle("active", tab === active);
-        tab.setAttribute("aria-selected", tab === active ? "true" : "false");
-      });
-    }
+    /*
+     * Do not assign the active tab here.
+     * The diagram engine already manages All/Unplaced click state and its
+     * own filters. Forcing Unplaced active after each DOM mutation was the
+     * reason the All tab appeared not to work.
+     */
   }
 
   function filterPlacedItems(pool) {
     const items = Array.from(pool.querySelectorAll(".pool-item"));
-    let unplacedCount = 0;
+    let visibleUnplacedCount = 0;
 
     items.forEach(function updateItem(item) {
       const placed = isPlacedItem(item);
-      item.hidden = placed;
-      item.classList.toggle("nx-pool-item-hidden", placed);
 
-      if (!placed) {
-        unplacedCount += 1;
+      if (placed) {
+        item.hidden = true;
+        item.classList.add("nx-pool-item-hidden");
+      } else {
+        /* Respect the core renderer's filtering. Only remove the hidden
+         * state that this adapter previously applied itself. */
+        if (item.classList.contains("nx-pool-item-hidden")) {
+          item.hidden = false;
+          item.classList.remove("nx-pool-item-hidden");
+        }
+
+        if (!item.hidden) {
+          visibleUnplacedCount += 1;
+        }
       }
     });
 
     const count = pool.querySelector(".panel-head .count");
     if (count) {
-      count.textContent = String(unplacedCount);
-      count.setAttribute("aria-label", unplacedCount + " unplaced equipment items");
+      count.textContent = String(visibleUnplacedCount);
+      count.setAttribute(
+        "aria-label",
+        visibleUnplacedCount + " visible unplaced equipment items"
+      );
     }
 
-    pool.dataset.unplacedCount = String(unplacedCount);
+    pool.dataset.unplacedCount = String(visibleUnplacedCount);
   }
 
   function install(pool) {
     if (!pool || pool.dataset.unplacedPoolInstalled === "1") return;
+
     pool.dataset.unplacedPoolInstalled = "1";
     pool.classList.add("nx-unplaced-equipment-pool");
 
     renamePanel(pool);
-    simplifyTabs(pool);
+    removePlacedTab(pool);
     filterPlacedItems(pool);
 
     let queued = false;
+
     const refresh = function refreshPool() {
       if (queued) return;
       queued = true;
@@ -135,7 +144,7 @@
       window.requestAnimationFrame(function applyPoolRules() {
         queued = false;
         renamePanel(pool);
-        simplifyTabs(pool);
+        removePlacedTab(pool);
         filterPlacedItems(pool);
       });
     };
@@ -146,7 +155,13 @@
       subtree: true,
       characterData: true,
       attributes: true,
-      attributeFilter: ["class", "data-placed", "aria-placed"]
+      attributeFilter: [
+        "class",
+        "hidden",
+        "data-placed",
+        "aria-placed",
+        "aria-selected"
+      ]
     });
   }
 
