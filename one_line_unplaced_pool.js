@@ -162,14 +162,14 @@
     if (!document.querySelector('link[data-nx-smart-tools="1"]')) {
       const stylesheet = document.createElement("link");
       stylesheet.rel = "stylesheet";
-      stylesheet.href = "one_line_smart_tools.css?v=1";
+      stylesheet.href = "one_line_smart_tools.css?v=2";
       stylesheet.dataset.nxSmartTools = "1";
       document.head.appendChild(stylesheet);
     }
 
     if (!document.querySelector('script[data-nx-smart-tools="1"]')) {
       const script = document.createElement("script");
-      script.src = "one_line_smart_tools.js?v=1";
+      script.src = "one_line_smart_tools.js?v=2";
       script.defer = true;
       script.dataset.nxSmartTools = "1";
       document.head.appendChild(script);
