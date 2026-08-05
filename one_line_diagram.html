@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="one_line_diagram.css?v=10" />
   <link rel="stylesheet" href="one_line_readiness.css?v=2" />
   <link rel="stylesheet" href="one_line_field_compact.css?v=3" />
+  <link rel="stylesheet" href="one_line_unplaced_pool.css?v=1" />
 </head>
 
 <body class="one-line-standalone-page">
@@ -46,9 +47,12 @@
      floating Fit/zoom controls, and stronger phase identification.
   8. one_line_field_compact.css maximizes the field-view canvas while
      leaving the engineering editor and embedded dashboard unchanged.
+  9. one_line_unplaced_pool.js and one_line_unplaced_pool.css simplify only
+     the engineering placement pool. Placed equipment is hidden from the
+     pool, the Placed tab is removed, and Mini Map/Properties are untouched.
 
-  No existing editor, viewer, storage, navigation, gesture, or Firebase
-  integration behavior is intentionally removed by these additive modules.
+  No existing editor, viewer, storage, navigation, gesture, Mini Map,
+  Properties, or Firebase integration behavior is intentionally removed.
 -->
 <script src="firebase-config.template.js?v=1"></script>
 <script src="one_line_storage.js?v=9"></script>
@@ -63,6 +67,7 @@
 <script src="one_line_readiness.js?v=1"></script>
 <script src="one_line_readiness_hotfix.js?v=1"></script>
 <script src="one_line_display_identity.js?v=3"></script>
+<script src="one_line_unplaced_pool.js?v=1"></script>
 
   <script>
     (function initializeOneLineWorkspace() {
@@ -94,7 +99,8 @@
           "Required files: one_line_diagram.html, one_line_diagram.css, " +
           "one_line_diagram.js, one_line_readiness.css, one_line_readiness.js, " +
           "one_line_readiness_hotfix.js, one_line_display_identity.js, " +
-          "one_line_field_compact.css, and one_line_storage.js.";
+          "one_line_field_compact.css, one_line_unplaced_pool.js, " +
+          "one_line_unplaced_pool.css, and one_line_storage.js.";
 
         const consoleHelp = document.createElement("p");
         consoleHelp.textContent = "Press F12 and open the Console tab for the exact error.";
