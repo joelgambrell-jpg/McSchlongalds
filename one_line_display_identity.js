@@ -2,19 +2,22 @@
  * NEXUS ONE-LINE DISPLAY IDENTITY
  * ===============================
  *
- * Additive presentation layer for large office/VFM displays.
+ * Additive presentation layer for large office/VFM and QR field displays.
  *
- * - Adds an unmistakable project/building/diagram banner to field view.
- * - Adds a read-only field-status badge.
- * - Makes phase zones easier to identify in every presentation.
- * - Does not alter diagram data, equipment data, storage, routing, or editing.
+ * FIELD HEADER CONTRACT
+ * ---------------------
+ * The field display intentionally shows only:
+ * - NEXUS
+ * - BUILDING identifier
+ * - OVERALL or the active PHASE
+ * - FIELD VIEW / READ ONLY
  *
- * Optional URL parameters:
- *   project=CMH037
- *   projectName=Project%20Line%20Master
- *   site=NEXUS%20Data%20Center%20Campus
- *   building=A
- *   diagram=overall
+ * Project names, project codes, site names, and "Data Science LLC" are
+ * deliberately omitted so the diagram receives the maximum usable space.
+ *
+ * This module also moves the existing Fit / zoom controls into a compact
+ * floating control group over the diagram. The original buttons are moved,
+ * not duplicated, so all existing event handlers remain intact.
  */
 (function initializeNexusOneLineDisplayIdentity() {
   "use strict";
@@ -48,17 +51,10 @@
 
   function buildIdentity() {
     const params = parameters();
-    const projectId = params.get("project") || "PROJECT LINE MASTER";
-    const projectName = params.get("projectName") ||
-      (projectId === "sample-project" ? "PROJECT LINE MASTER" : titleCase(projectId));
-    const siteName = params.get("site") || "NEXUS PROJECT ONE-LINE";
     const buildingId = params.get("building") || "A";
     const diagramId = params.get("diagram") || "overall";
 
     return {
-      projectId: projectId === "sample-project" ? "" : projectId,
-      projectName,
-      siteName,
       buildingLabel: "BUILDING " + String(buildingId).toUpperCase(),
       diagramLabel: String(diagramId).toLowerCase() === "overall"
         ? "OVERALL"
@@ -72,15 +68,10 @@
     const identity = buildIdentity();
     const banner = document.createElement("header");
     banner.className = "nx-display-identity";
-    banner.setAttribute("aria-label", "Project and building identification");
+    banner.setAttribute("aria-label", "Building and diagram identification");
 
     banner.innerHTML = [
-      '<div class="nx-display-brand"><span>NE<span class="nx-brand-x">X</span>US</span><small>DATA SCIENCE LLC</small></div>',
-      '<div class="nx-display-project">',
-      '<span class="nx-project-name">' + identity.projectName + "</span>",
-      identity.projectId ? '<span class="nx-project-id">' + identity.projectId + "</span>" : "",
-      '<small>' + identity.siteName + "</small>",
-      "</div>",
+      '<div class="nx-display-brand" aria-label="NEXUS">NE<span class="nx-brand-x">X</span>US</div>',
       '<div class="nx-display-building">',
       '<strong>' + identity.buildingLabel + "</strong>",
       '<span>' + identity.diagramLabel + "</span>",
@@ -91,13 +82,35 @@
     root.insertBefore(banner, root.firstChild);
   }
 
+  function moveFieldControls(root) {
+    if (!isFieldView() || root.querySelector(".nx-field-floating-controls")) return;
+
+    const buttons = [
+      root.querySelector('[data-action="fit"]'),
+      root.querySelector('[data-action="zoom-out"]'),
+      root.querySelector('[data-action="zoom-in"]')
+    ].filter(Boolean);
+
+    if (!buttons.length) return;
+
+    const controls = document.createElement("div");
+    controls.className = "nx-field-floating-controls";
+    controls.setAttribute("aria-label", "Diagram zoom controls");
+
+    buttons.forEach(function moveButton(button) {
+      controls.appendChild(button);
+    });
+
+    root.appendChild(controls);
+  }
+
   function phaseNumber(text) {
     const match = String(text || "").match(/PHASE\s*(\d+)/i);
     return match ? Number(match[1]) : null;
   }
 
   function decoratePhaseZones(root) {
-    root.querySelectorAll(".zone").forEach(function decorateZone(group, index) {
+    root.querySelectorAll(".zone").forEach(function decorateZone(group) {
       const text = group.querySelector("text");
       const rect = group.querySelector("rect");
       const label = text ? String(text.textContent || "").trim() : "";
@@ -109,12 +122,8 @@
       group.dataset.phaseZone = number ? String(number) : "other";
       group.style.setProperty("--nx-phase-color", color);
 
-      if (rect) {
-        rect.style.setProperty("--nx-phase-color", color);
-      }
-      if (text) {
-        text.style.setProperty("--nx-phase-color", color);
-      }
+      if (rect) rect.style.setProperty("--nx-phase-color", color);
+      if (text) text.style.setProperty("--nx-phase-color", color);
     });
   }
 
@@ -123,6 +132,7 @@
     root.dataset.displayIdentityInstalled = "1";
 
     addFieldBanner(root);
+    moveFieldControls(root);
     decoratePhaseZones(root);
 
     let queued = false;
@@ -132,6 +142,7 @@
       window.requestAnimationFrame(function refreshIdentity() {
         queued = false;
         addFieldBanner(root);
+        moveFieldControls(root);
         decoratePhaseZones(root);
       });
     });
