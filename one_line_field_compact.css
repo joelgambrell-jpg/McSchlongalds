@@ -1,0 +1,170 @@
+/*
+ * NEXUS ONE-LINE COMPACT FIELD DISPLAY
+ * ====================================
+ * Field/QR presentation only. The engineering editor and embedded white
+ * dashboard are intentionally unaffected.
+ */
+
+.nexus-field-readiness {
+  position: relative;
+}
+
+/* Remove the redundant core viewer heading/toolbar after its three working
+ * buttons have been moved into .nx-field-floating-controls by
+ * one_line_display_identity.js. */
+.nexus-field-readiness .canvas-toolbar {
+  display: none !important;
+}
+
+/* Compact single-row identity bar: NEXUS | BUILDING / VIEW | READ ONLY. */
+.nexus-field-readiness .nx-display-identity {
+  min-height: 72px !important;
+  height: 72px;
+  display: grid !important;
+  grid-template-columns: minmax(150px, .7fr) minmax(360px, 2.3fr) auto !important;
+  align-items: center;
+  gap: 18px !important;
+  padding: 8px 18px !important;
+  background: linear-gradient(180deg, #080b11 0%, #04070b 100%);
+  border-bottom: 1px solid #314157;
+}
+
+.nexus-field-readiness .nx-display-brand {
+  color: #f7fbff;
+  font-size: clamp(28px, 2.4vw, 45px) !important;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: 3px;
+  white-space: nowrap;
+}
+
+.nexus-field-readiness .nx-display-building {
+  min-width: 0;
+  text-align: center !important;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.nexus-field-readiness .nx-display-building strong {
+  display: inline !important;
+  color: #ff39d1;
+  font-size: clamp(30px, 3vw, 58px) !important;
+  line-height: .9;
+  font-weight: 950;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(255,57,209,.32);
+}
+
+.nexus-field-readiness .nx-display-building span {
+  display: inline !important;
+  margin-left: 16px !important;
+  color: #f7fbff;
+  font-size: clamp(24px, 2.25vw, 42px) !important;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.nexus-field-readiness .nx-display-state {
+  min-width: 136px !important;
+  padding: 8px 14px !important;
+}
+
+/* Float the original Fit / - / + controls over the diagram so they consume
+ * no permanent vertical space and retain their original event listeners. */
+.nexus-field-readiness .nx-field-floating-controls {
+  position: absolute;
+  top: 84px;
+  right: 16px;
+  z-index: 45;
+  display: flex;
+  gap: 7px;
+  padding: 6px;
+  border: 1px solid #34445c;
+  border-radius: 10px;
+  background: rgba(5,8,13,.88);
+  box-shadow: 0 8px 24px rgba(0,0,0,.45);
+  backdrop-filter: blur(6px);
+}
+
+.nexus-field-readiness .nx-field-floating-controls button {
+  min-width: 46px;
+  min-height: 42px;
+  margin: 0 !important;
+  padding: 8px 12px !important;
+  border: 1px solid #4a5568 !important;
+  border-radius: 7px !important;
+  background: #111720 !important;
+  color: #fff !important;
+  font-weight: 900;
+}
+
+/* Use all space beneath the compact identity bar for the project visual. */
+.nexus-field-readiness .canvas-wrap,
+.nexus-field-readiness .canvas-viewport {
+  min-height: 0;
+}
+
+.nexus-field-readiness .canvas-viewport {
+  flex: 1 1 auto;
+}
+
+/* Keep the readiness key compact and out of the diagram's primary area. */
+.nexus-field-readiness .nx-readiness-legend {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 40;
+  max-width: calc(100% - 24px);
+  border: 1px solid #34445c;
+  border-radius: 9px;
+  background: rgba(5,8,13,.88) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.38);
+  backdrop-filter: blur(6px);
+}
+
+@media (max-width: 800px) {
+  .nexus-field-readiness .nx-display-identity {
+    height: 64px;
+    min-height: 64px !important;
+    grid-template-columns: auto 1fr auto !important;
+    gap: 8px !important;
+    padding: 7px 9px !important;
+  }
+
+  .nexus-field-readiness .nx-display-brand {
+    display: block !important;
+    font-size: 22px !important;
+    letter-spacing: 1px;
+  }
+
+  .nexus-field-readiness .nx-display-building strong {
+    font-size: 24px !important;
+  }
+
+  .nexus-field-readiness .nx-display-building span {
+    margin-left: 7px !important;
+    font-size: 17px !important;
+  }
+
+  .nexus-field-readiness .nx-display-state {
+    min-width: 88px !important;
+    padding: 5px 7px !important;
+  }
+
+  .nexus-field-readiness .nx-display-state strong {
+    font-size: 12px !important;
+  }
+
+  .nexus-field-readiness .nx-display-state span {
+    font-size: 9px !important;
+  }
+
+  .nexus-field-readiness .nx-field-floating-controls {
+    top: 72px;
+    right: 8px;
+  }
+
+  .nexus-field-readiness .nx-readiness-legend {
+    display: none;
+  }
+}
