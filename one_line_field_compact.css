@@ -1,76 +1,149 @@
 /*
  * NEXUS ONE-LINE COMPACT FIELD DISPLAY
  * ====================================
- * Field/QR presentation only. The engineering editor and embedded white
- * dashboard are intentionally unaffected.
+ * Field/QR presentation only. Engineering and embedded dashboard views are
+ * intentionally unaffected.
  */
 
 .nexus-field-readiness {
   position: relative;
 }
 
-/* Remove the redundant core viewer heading/toolbar after its three working
- * buttons have been moved into .nx-field-floating-controls by
- * one_line_display_identity.js. */
-.nexus-field-readiness .canvas-toolbar {
+.nexus-field-readiness .canvas-toolbar,
+.nexus-field-readiness .nx-field-legacy-title-hidden,
+.nexus-field-readiness .nx-field-legacy-title-row-hidden {
   display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
 }
 
-/* Compact single-row identity bar: NEXUS | BUILDING / VIEW | READ ONLY. */
+/* Exact 72 px single-row header. */
 .nexus-field-readiness .nx-display-identity {
+  box-sizing: border-box;
+  width: 100%;
   min-height: 72px !important;
-  height: 72px;
+  height: 72px !important;
   display: grid !important;
-  grid-template-columns: minmax(150px, .7fr) minmax(360px, 2.3fr) auto !important;
-  align-items: center;
-  gap: 18px !important;
+  grid-template-columns: 250px minmax(420px, 1fr) 190px !important;
+  align-items: center !important;
+  gap: 20px !important;
   padding: 8px 18px !important;
-  background: linear-gradient(180deg, #080b11 0%, #04070b 100%);
-  border-bottom: 1px solid #314157;
-}
-
-.nexus-field-readiness .nx-display-brand {
+  background: linear-gradient(180deg, #080b11 0%, #04070b 100%) !important;
+  border-bottom: 1px solid #314157 !important;
   color: #f7fbff;
-  font-size: clamp(28px, 2.4vw, 45px) !important;
-  line-height: 1;
-  font-weight: 950;
-  letter-spacing: 3px;
-  white-space: nowrap;
+  overflow: hidden;
 }
 
+/* Full NEXUS wordmark, forced onto one line. */
+.nexus-field-readiness .nx-display-brand {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+  color: #f7fbff;
+  font-size: clamp(30px, 2.35vw, 46px) !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  letter-spacing: 3px !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+.nexus-field-readiness .nx-display-brand > span,
+.nexus-field-readiness .nx-display-brand .nx-brand-ne,
+.nexus-field-readiness .nx-display-brand .nx-brand-x,
+.nexus-field-readiness .nx-display-brand .nx-brand-us {
+  display: inline !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font: inherit !important;
+  line-height: 1 !important;
+  letter-spacing: inherit !important;
+  white-space: nowrap !important;
+}
+
+.nexus-field-readiness .nx-display-brand .nx-brand-x {
+  color: #ff4b20 !important;
+}
+
+/* Building/view title centered as a single balanced line. */
 .nexus-field-readiness .nx-display-building {
   min-width: 0;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 22px !important;
   text-align: center !important;
-  white-space: nowrap;
+  white-space: nowrap !important;
   text-transform: uppercase;
+  overflow: hidden;
 }
 
 .nexus-field-readiness .nx-display-building strong {
-  display: inline !important;
-  color: #ff39d1;
-  font-size: clamp(30px, 3vw, 58px) !important;
-  line-height: .9;
-  font-weight: 950;
-  letter-spacing: 2px;
+  display: inline-block !important;
+  color: #ff39d1 !important;
+  font-size: clamp(30px, 2.8vw, 54px) !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  letter-spacing: 2px !important;
   text-shadow: 0 0 10px rgba(255,57,209,.32);
 }
 
+.nexus-field-readiness .nx-display-building i {
+  display: block !important;
+  flex: 0 0 2px;
+  width: 2px;
+  height: 42px;
+  background: rgba(247,251,255,.72);
+  border-radius: 2px;
+}
+
 .nexus-field-readiness .nx-display-building span {
-  display: inline !important;
-  margin-left: 16px !important;
-  color: #f7fbff;
-  font-size: clamp(24px, 2.25vw, 42px) !important;
-  font-weight: 900;
-  letter-spacing: 1px;
+  display: inline-block !important;
+  margin: 0 !important;
+  color: #f7fbff !important;
+  font-size: clamp(29px, 2.55vw, 49px) !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  letter-spacing: 1.5px !important;
 }
 
 .nexus-field-readiness .nx-display-state {
-  min-width: 136px !important;
-  padding: 8px 14px !important;
+  box-sizing: border-box;
+  width: 176px;
+  min-width: 176px !important;
+  height: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px !important;
+  border: 2px solid #00f56a !important;
+  border-radius: 8px !important;
+  color: #00f56a !important;
+  text-align: center;
 }
 
-/* Float the original Fit / - / + controls over the diagram so they consume
- * no permanent vertical space and retain their original event listeners. */
+.nexus-field-readiness .nx-display-state strong {
+  font-size: 17px !important;
+  line-height: 1.05;
+  letter-spacing: 1px;
+}
+
+.nexus-field-readiness .nx-display-state span {
+  margin-top: 3px;
+  font-size: 11px !important;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+}
+
+/* Preserve working button handlers while floating controls over the canvas. */
 .nexus-field-readiness .nx-field-floating-controls {
   position: absolute;
   top: 84px;
@@ -81,34 +154,35 @@
   padding: 6px;
   border: 1px solid #34445c;
   border-radius: 10px;
-  background: rgba(5,8,13,.88);
+  background: rgba(5,8,13,.9);
   box-shadow: 0 8px 24px rgba(0,0,0,.45);
   backdrop-filter: blur(6px);
 }
 
 .nexus-field-readiness .nx-field-floating-controls button {
-  min-width: 46px;
-  min-height: 42px;
+  min-width: 58px;
+  min-height: 48px;
   margin: 0 !important;
   padding: 8px 12px !important;
   border: 1px solid #4a5568 !important;
-  border-radius: 7px !important;
+  border-radius: 8px !important;
   background: #111720 !important;
   color: #fff !important;
-  font-weight: 900;
+  font-weight: 900 !important;
+  font-size: 18px !important;
 }
 
-/* Use all space beneath the compact identity bar for the project visual. */
+/* Grid begins directly under the 72 px header. */
 .nexus-field-readiness .canvas-wrap,
 .nexus-field-readiness .canvas-viewport {
-  min-height: 0;
+  min-height: 0 !important;
+  margin-top: 0 !important;
 }
 
 .nexus-field-readiness .canvas-viewport {
   flex: 1 1 auto;
 }
 
-/* Keep the readiness key compact and out of the diagram's primary area. */
 .nexus-field-readiness .nx-readiness-legend {
   position: absolute;
   left: 12px;
@@ -117,53 +191,87 @@
   max-width: calc(100% - 24px);
   border: 1px solid #34445c;
   border-radius: 9px;
-  background: rgba(5,8,13,.88) !important;
+  background: rgba(5,8,13,.9) !important;
   box-shadow: 0 8px 24px rgba(0,0,0,.38);
   backdrop-filter: blur(6px);
 }
 
+@media (max-width: 1100px) {
+  .nexus-field-readiness .nx-display-identity {
+    grid-template-columns: 180px minmax(300px, 1fr) 148px !important;
+    gap: 10px !important;
+    padding: 8px 12px !important;
+  }
+  .nexus-field-readiness .nx-display-brand {
+    font-size: 30px !important;
+  }
+  .nexus-field-readiness .nx-display-building {
+    gap: 10px !important;
+  }
+  .nexus-field-readiness .nx-display-building strong {
+    font-size: 34px !important;
+  }
+  .nexus-field-readiness .nx-display-building span {
+    font-size: 30px !important;
+  }
+  .nexus-field-readiness .nx-display-building i {
+    height: 34px;
+  }
+  .nexus-field-readiness .nx-display-state {
+    width: 142px;
+    min-width: 142px !important;
+  }
+}
+
 @media (max-width: 800px) {
   .nexus-field-readiness .nx-display-identity {
-    height: 64px;
+    height: 64px !important;
     min-height: 64px !important;
-    grid-template-columns: auto 1fr auto !important;
-    gap: 8px !important;
-    padding: 7px 9px !important;
+    grid-template-columns: 86px minmax(170px, 1fr) 92px !important;
+    gap: 6px !important;
+    padding: 6px 8px !important;
   }
-
   .nexus-field-readiness .nx-display-brand {
-    display: block !important;
-    font-size: 22px !important;
-    letter-spacing: 1px;
+    font-size: 20px !important;
+    letter-spacing: 1px !important;
   }
-
+  .nexus-field-readiness .nx-display-building {
+    gap: 6px !important;
+  }
   .nexus-field-readiness .nx-display-building strong {
-    font-size: 24px !important;
+    font-size: 21px !important;
+    letter-spacing: .5px !important;
   }
-
   .nexus-field-readiness .nx-display-building span {
-    margin-left: 7px !important;
-    font-size: 17px !important;
+    font-size: 18px !important;
+    letter-spacing: .3px !important;
   }
-
+  .nexus-field-readiness .nx-display-building i {
+    width: 1px;
+    flex-basis: 1px;
+    height: 25px;
+  }
   .nexus-field-readiness .nx-display-state {
-    min-width: 88px !important;
-    padding: 5px 7px !important;
+    width: 90px;
+    min-width: 90px !important;
+    height: 44px;
+    padding: 4px 5px !important;
   }
-
   .nexus-field-readiness .nx-display-state strong {
-    font-size: 12px !important;
+    font-size: 11px !important;
   }
-
   .nexus-field-readiness .nx-display-state span {
-    font-size: 9px !important;
+    font-size: 8px !important;
   }
-
   .nexus-field-readiness .nx-field-floating-controls {
     top: 72px;
     right: 8px;
   }
-
+  .nexus-field-readiness .nx-field-floating-controls button {
+    min-width: 46px;
+    min-height: 42px;
+    font-size: 15px !important;
+  }
   .nexus-field-readiness .nx-readiness-legend {
     display: none;
   }
