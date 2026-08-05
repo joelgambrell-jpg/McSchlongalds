@@ -5,15 +5,14 @@
  *
  * Required behavior:
  * - All is the permanent material/equipment reference list.
- * - Unplaced is a temporary work queue.
+ * - Unplaced is the placement work queue.
  * - Placed remains removed as a separate tab.
- * - When no unplaced equipment remains, the Unplaced tab disappears and
- *   the pool automatically returns to All instead of hiding the whole panel.
- * - If equipment is removed from the diagram or new equipment is added,
- *   Unplaced automatically reappears.
+ * - Selecting an empty Unplaced view must NEVER collapse the left panel or
+ *   allow the diagram canvas to slide underneath it.
+ * - All and Unplaced continue using the core renderer's original filtering.
  *
  * Mini Map, Properties, drag/drop, storage, and diagram behavior remain
- * untouched. The core renderer still owns all filtering and tab actions.
+ * untouched.
  */
 (function initializeNexusEquipmentPoolSimplification() {
   "use strict";
@@ -52,7 +51,10 @@
     });
 
     const heading = header.querySelector("h1,h2,h3,h4,strong,span:not(.count)");
-    if (heading && /equipment pool|unplaced equipment/i.test(String(heading.textContent || ""))) {
+    if (
+      heading &&
+      /equipment pool|unplaced equipment/i.test(String(heading.textContent || ""))
+    ) {
       heading.textContent = String(heading.textContent).replace(
         /Equipment Pool|Unplaced Equipment/gi,
         "Equipment Reference"
@@ -70,65 +72,57 @@
     );
   }
 
-  function countUnplacedItems(pool) {
-    return Array.from(pool.querySelectorAll(".pool-item")).filter(
-      function countItem(item) {
-        return !item.classList.contains("placed");
-      }
-    ).length;
+  function unplacedViewIsActive(pool) {
+    const tab = findTab(pool, "unplaced");
+    return Boolean(
+      tab &&
+      (
+        tab.classList.contains("active") ||
+        tab.getAttribute("aria-selected") === "true"
+      )
+    );
   }
 
-  function updateUnplacedAvailability(pool) {
-    const allTab = findTab(pool, "all");
-    const unplacedTab = findTab(pool, "unplaced");
-    if (!allTab || !unplacedTab) return;
+  function unplacedViewIsEmpty(pool) {
+    if (!unplacedViewIsActive(pool)) return false;
 
-    const unplacedCount = countUnplacedItems(pool);
-    const unplacedIsActive = unplacedTab.classList.contains("active") ||
-      unplacedTab.getAttribute("aria-selected") === "true";
-
-    if (unplacedCount === 0) {
-      unplacedTab.hidden = true;
-      unplacedTab.setAttribute("aria-hidden", "true");
-
-      if (unplacedIsActive) {
-        /*
-         * Use the original All-tab click handler so the renderer updates its
-         * own instance.poolTab state and rebuilds the full reference list.
-         */
-        allTab.click();
+    const visibleItems = Array.from(pool.querySelectorAll(".pool-item")).filter(
+      function visibleItem(item) {
+        return !item.hidden && getComputedStyle(item).display !== "none";
       }
-    } else {
-      unplacedTab.hidden = false;
-      unplacedTab.removeAttribute("aria-hidden");
-    }
+    );
+
+    return visibleItems.length === 0;
   }
 
-  function keepReferencePanelAvailable(pool) {
+  function keepEmptyUnplacedPanelOpen(pool) {
+    if (!unplacedViewIsEmpty(pool)) return;
+
     const workspace = pool.closest(".workspace");
-    const allTab = findTab(pool, "all");
+    if (!workspace) return;
 
-    if (
-      workspace &&
-      workspace.classList.contains("pool-hidden") &&
-      allTab
-    ) {
-      const unplacedTab = findTab(pool, "unplaced");
-      const unplacedIsActive = unplacedTab &&
-        (unplacedTab.classList.contains("active") ||
-         unplacedTab.getAttribute("aria-selected") === "true");
+    /*
+     * The core renderer historically added .pool-hidden when the Unplaced
+     * list reached zero. That caused the canvas to expand underneath the
+     * panel. Remove only that automatic collapsed state while the empty
+     * Unplaced tab is active. The normal manual hide button remains usable
+     * from other pool views.
+     */
+    workspace.classList.remove("pool-hidden");
+    pool.hidden = false;
+    pool.removeAttribute("aria-hidden");
+    pool.style.removeProperty("display");
 
-      if (unplacedIsActive && countUnplacedItems(pool) === 0) {
-        allTab.click();
-      }
+    const empty = pool.querySelector(".pool-empty");
+    if (empty) {
+      empty.textContent = "All equipment has been placed.";
     }
   }
 
   function refreshPoolPresentation(pool) {
     renamePanel(pool);
     removePlacedTab(pool);
-    updateUnplacedAvailability(pool);
-    keepReferencePanelAvailable(pool);
+    keepEmptyUnplacedPanelOpen(pool);
   }
 
   function install(pool) {
@@ -156,7 +150,7 @@
       subtree: true,
       characterData: true,
       attributes: true,
-      attributeFilter: ["class", "aria-selected"]
+      attributeFilter: ["class", "aria-selected", "hidden", "style"]
     });
 
     const workspace = pool.closest(".workspace");
