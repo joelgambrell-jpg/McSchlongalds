@@ -1,6 +1,13 @@
 /**
  * NEXUS SMART PROPERTIES + LAYOUT ASSISTANT
  * Engineering editor only. Additive; does not replace the core renderer.
+ *
+ * Completion-key behavior:
+ * - Removes the duplicate legacy Completion legend from the right panel.
+ * - Keeps the Mini Map and all original Properties editing controls.
+ * - Provides one white diagram key that is movable, collapsible, and closable.
+ * - Saves position, collapsed state, and visibility in localStorage.
+ * - Adds a toolbar Key button so a closed key can always be restored.
  */
 (function initializeNexusSmartTools(){
   "use strict";
@@ -82,31 +89,209 @@
     if(open)open.addEventListener("click",function(){window.open("equipment.html?eq="+encodeURIComponent(data.id),"_blank","noopener,noreferrer");});
   }
 
+  function removeLegacySidebarCompletion(root){
+    const wrap=q(root,".properties-wrap");
+    if(!wrap)return;
+
+    qa(wrap,"section,div").forEach(function inspect(candidate){
+      if(candidate.classList.contains("nx-smart-health")||candidate.closest(".nx-smart-health"))return;
+      const full=(candidate.textContent||"").replace(/\s+/g," ").trim();
+      if(!/^Completion(?:\s|$)/i.test(full))return;
+      if(!/100% Complete/i.test(full)||!/No Data/i.test(full))return;
+
+      const section=candidate.closest("section,.properties-section,.property-section,.completion-legend,.legend")||candidate;
+      if(section&&section!==wrap)section.remove();
+    });
+  }
+
+  function storageKey(root){
+    const params=new URLSearchParams(location.search);
+    return [
+      "nexus-one-line-key",
+      params.get("project")||"sample-project",
+      params.get("building")||"A",
+      params.get("diagram")||"overall"
+    ].join(":");
+  }
+
+  function readLegendState(root){
+    try{
+      const value=JSON.parse(localStorage.getItem(storageKey(root))||"null");
+      return value&&typeof value==="object"?value:{};
+    }catch(error){return {};}
+  }
+
+  function saveLegendState(root,legend){
+    try{
+      const state={
+        left:parseFloat(legend.style.left)||null,
+        top:parseFloat(legend.style.top)||null,
+        collapsed:legend.classList.contains("collapsed"),
+        hidden:legend.hidden===true
+      };
+      localStorage.setItem(storageKey(root),JSON.stringify(state));
+    }catch(error){/* local storage may be unavailable in restricted browsers */}
+  }
+
+  function clampLegend(viewport,legend,left,top){
+    const margin=8;
+    const maxLeft=Math.max(margin,viewport.clientWidth-legend.offsetWidth-margin);
+    const maxTop=Math.max(margin,viewport.clientHeight-legend.offsetHeight-margin);
+    return {
+      left:Math.min(Math.max(margin,left),maxLeft),
+      top:Math.min(Math.max(margin,top),maxTop)
+    };
+  }
+
+  function applySavedLegendState(root,viewport,legend){
+    const state=readLegendState(root);
+    legend.classList.toggle("collapsed",state.collapsed===true);
+    legend.hidden=state.hidden===true;
+
+    const toggle=q(legend,".nx-legend-collapse");
+    if(toggle){
+      toggle.setAttribute("aria-expanded",state.collapsed===true?"false":"true");
+      toggle.textContent=state.collapsed===true?"+":"−";
+      toggle.title=state.collapsed===true?"Expand completion key":"Collapse completion key";
+    }
+
+    requestAnimationFrame(function positionSavedLegend(){
+      const defaultLeft=Math.max(8,viewport.clientWidth-legend.offsetWidth-14);
+      const defaultTop=Math.max(8,viewport.clientHeight-legend.offsetHeight-14);
+      const position=clampLegend(
+        viewport,
+        legend,
+        Number.isFinite(Number(state.left))?Number(state.left):defaultLeft,
+        Number.isFinite(Number(state.top))?Number(state.top):defaultTop
+      );
+      legend.style.left=position.left+"px";
+      legend.style.top=position.top+"px";
+    });
+  }
+
+  function ensureLegendRestoreButton(root,legend){
+    let button=q(root,".nx-key-restore");
+    if(button)return button;
+
+    const toolbar=q(root,".toolbar,.tool-row,.top-tools,.controls")||q(root,"header");
+    if(!toolbar)return null;
+
+    button=document.createElement("button");
+    button.type="button";
+    button.className="nx-key-restore";
+    button.textContent="Key";
+    button.title="Show the completion key";
+    button.addEventListener("click",function(){
+      legend.hidden=false;
+      saveLegendState(root,legend);
+      button.hidden=true;
+    });
+    toolbar.appendChild(button);
+    button.hidden=!legend.hidden;
+    return button;
+  }
+
+  function enableLegendDrag(root,viewport,legend){
+    const handle=q(legend,".nx-legend-drag");
+    if(!handle||handle.dataset.dragReady==="1")return;
+    handle.dataset.dragReady="1";
+
+    let drag=null;
+    handle.addEventListener("pointerdown",function(event){
+      if(event.button!==0)return;
+      const legendRect=legend.getBoundingClientRect();
+      const viewportRect=viewport.getBoundingClientRect();
+      drag={
+        pointerId:event.pointerId,
+        offsetX:event.clientX-legendRect.left,
+        offsetY:event.clientY-legendRect.top,
+        viewportLeft:viewportRect.left,
+        viewportTop:viewportRect.top
+      };
+      handle.setPointerCapture(event.pointerId);
+      legend.classList.add("dragging");
+      event.preventDefault();
+    });
+
+    handle.addEventListener("pointermove",function(event){
+      if(!drag||event.pointerId!==drag.pointerId)return;
+      const requestedLeft=event.clientX-drag.viewportLeft-drag.offsetX;
+      const requestedTop=event.clientY-drag.viewportTop-drag.offsetY;
+      const position=clampLegend(viewport,legend,requestedLeft,requestedTop);
+      legend.style.left=position.left+"px";
+      legend.style.top=position.top+"px";
+    });
+
+    function finish(event){
+      if(!drag||event.pointerId!==drag.pointerId)return;
+      drag=null;
+      legend.classList.remove("dragging");
+      saveLegendState(root,legend);
+    }
+    handle.addEventListener("pointerup",finish);
+    handle.addEventListener("pointercancel",finish);
+  }
+
   function ensureCanvasLegend(root){
     const viewport=q(root,".canvas-viewport");
-    if(!viewport||q(viewport,".nx-canvas-legend"))return;
+    if(!viewport)return;
 
-    const legend=document.createElement("aside");
-    legend.className="nx-canvas-legend";
-    legend.setAttribute("aria-label","Equipment completion color key");
-    legend.innerHTML=
-      '<button class="nx-legend-toggle" type="button" aria-expanded="true">Completion Key</button>'+
-      '<div class="nx-legend-body">'+
-        '<div><i class="nx-key-gray"></i><span>Not Started</span><b>0%</b></div>'+
-        '<div><i class="nx-key-blue"></i><span>Started</span><b>1–25%</b></div>'+
-        '<div><i class="nx-key-orange"></i><span>In Progress</span><b>26–60%</b></div>'+
-        '<div><i class="nx-key-yellow"></i><span>Near Complete</span><b>61–99%</b></div>'+
-        '<div><i class="nx-key-green"></i><span>Ready</span><b>100%</b></div>'+
-        '<div><i class="nx-key-red"></i><span>Energized</span><b>Engineer Set</b></div>'+
-      '</div>';
-    viewport.appendChild(legend);
+    let legend=q(viewport,".nx-canvas-legend");
+    if(!legend){
+      legend=document.createElement("aside");
+      legend.className="nx-canvas-legend";
+      legend.setAttribute("aria-label","Equipment completion color key");
+      legend.innerHTML=
+        '<div class="nx-legend-titlebar">'+
+          '<button class="nx-legend-drag" type="button" aria-label="Drag completion key" title="Drag completion key">⋮⋮</button>'+
+          '<strong>Completion Key</strong>'+
+          '<span class="nx-legend-actions">'+
+            '<button class="nx-legend-collapse" type="button" aria-expanded="true" title="Collapse completion key">−</button>'+
+            '<button class="nx-legend-close" type="button" title="Hide completion key">×</button>'+
+          '</span>'+
+        '</div>'+
+        '<div class="nx-legend-body">'+
+          '<div><i class="nx-key-gray"></i><span>Not Started</span><b>0%</b></div>'+
+          '<div><i class="nx-key-blue"></i><span>Started</span><b>1–25%</b></div>'+
+          '<div><i class="nx-key-orange"></i><span>In Progress</span><b>26–60%</b></div>'+
+          '<div><i class="nx-key-yellow"></i><span>Near Complete</span><b>61–99%</b></div>'+
+          '<div><i class="nx-key-green"></i><span>Ready</span><b>100%</b></div>'+
+          '<div><i class="nx-key-red"></i><span>Energized</span><b>Engineer Set</b></div>'+
+          '<div class="nx-legend-help">Drag to move • − to collapse</div>'+
+        '</div>';
+      viewport.appendChild(legend);
+      applySavedLegendState(root,viewport,legend);
+    }
 
-    const toggle=q(legend,".nx-legend-toggle");
-    toggle.addEventListener("click",function(){
-      const collapsed=legend.classList.toggle("collapsed");
-      toggle.setAttribute("aria-expanded",collapsed?"false":"true");
-      toggle.textContent=collapsed?"Key":"Completion Key";
-    });
+    enableLegendDrag(root,viewport,legend);
+    const restore=ensureLegendRestoreButton(root,legend);
+
+    const collapse=q(legend,".nx-legend-collapse");
+    if(collapse&&!collapse.dataset.ready){
+      collapse.dataset.ready="1";
+      collapse.addEventListener("click",function(){
+        const collapsed=legend.classList.toggle("collapsed");
+        collapse.setAttribute("aria-expanded",collapsed?"false":"true");
+        collapse.textContent=collapsed?"+":"−";
+        collapse.title=collapsed?"Expand completion key":"Collapse completion key";
+        const position=clampLegend(viewport,legend,parseFloat(legend.style.left)||8,parseFloat(legend.style.top)||8);
+        legend.style.left=position.left+"px";
+        legend.style.top=position.top+"px";
+        saveLegendState(root,legend);
+      });
+    }
+
+    const close=q(legend,".nx-legend-close");
+    if(close&&!close.dataset.ready){
+      close.dataset.ready="1";
+      close.addEventListener("click",function(){
+        legend.hidden=true;
+        if(restore)restore.hidden=false;
+        saveLegendState(root,legend);
+      });
+    }
+
+    if(restore)restore.hidden=!legend.hidden;
   }
 
   function findButton(root,terms){
@@ -139,8 +324,6 @@
     dialog.hidden=false;
     const apply=q(dialog,"[data-apply]");
     apply.onclick=function(){
-      const selected=q(dialog,'input[name="nx-layout-mode"]:checked');
-      const mode=selected?selected.value:"engineering";
       const auto=findButton(root,["auto arrange","auto-arrange","arrange"]);
       const fit=findButton(root,["fit"]);
       if(auto)auto.click();
@@ -154,11 +337,24 @@
     root.dataset.smartToolsInstalled="1";
     ensureLayoutAssistant(root);
     ensureCanvasLegend(root);
+    removeLegacySidebarCompletion(root);
     renderHealth(root);
+
     let queued=false;
-    const observer=new MutationObserver(function(){if(queued)return;queued=true;requestAnimationFrame(function(){queued=false;ensureLayoutAssistant(root);ensureCanvasLegend(root);renderHealth(root);});});
+    const observer=new MutationObserver(function(){
+      if(queued)return;
+      queued=true;
+      requestAnimationFrame(function(){
+        queued=false;
+        ensureLayoutAssistant(root);
+        ensureCanvasLegend(root);
+        removeLegacySidebarCompletion(root);
+        renderHealth(root);
+      });
+    });
     observer.observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
   }
+
   function scan(){if(!isEditor())return;qa(document,".nexus-one-line").forEach(install);}
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",scan,{once:true});else scan();
   new MutationObserver(scan).observe(document.documentElement,{childList:true,subtree:true});
