@@ -31,6 +31,16 @@
     "#ff4fd8"
   ];
 
+  function ensureCompactStylesheet() {
+    if (document.querySelector('link[data-nexus-field-compact="1"]')) return;
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "one_line_field_compact.css?v=1";
+    link.dataset.nexusFieldCompact = "1";
+    document.head.appendChild(link);
+  }
+
   function parameters() {
     return new URLSearchParams(window.location.search);
   }
@@ -157,6 +167,8 @@
   function scan() {
     document.querySelectorAll(".nexus-one-line").forEach(install);
   }
+
+  ensureCompactStylesheet();
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", scan, { once: true });
