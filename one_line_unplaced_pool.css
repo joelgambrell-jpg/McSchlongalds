@@ -1,0 +1,26 @@
+/*
+ * NEXUS ONE-LINE UNPLACED EQUIPMENT POOL
+ * Engineering/setup page only. Mini Map and Properties are untouched.
+ */
+
+.nx-unplaced-equipment-pool .pool-tabs {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.nx-unplaced-equipment-pool .pool-tab[hidden],
+.nx-unplaced-equipment-pool .nx-pool-item-hidden {
+  display: none !important;
+}
+
+.nx-unplaced-equipment-pool .panel-head {
+  min-height: 58px;
+}
+
+.nx-unplaced-equipment-pool .pool-tab {
+  min-height: 48px;
+  font-weight: 800;
+}
+
+.nx-unplaced-equipment-pool .pool-tab.active {
+  border-bottom-color: #d42129;
+}
