@@ -25,10 +25,8 @@
 
   <title>NEXUS One-Line Diagram</title>
 
-  <link
-    rel="stylesheet"
-href="one_line_diagram.css?v=8"
-  />
+  <link rel="stylesheet" href="one_line_diagram.css?v=10" />
+  <link rel="stylesheet" href="one_line_readiness.css?v=1" />
 </head>
 
 <body class="one-line-standalone-page">
@@ -50,16 +48,19 @@ href="one_line_diagram.css?v=8"
   </main>
 
 <!--
-  ACTIVE STORAGE ORDER
-  --------------------
-  1. one_line_storage.js provides the current localStorage adapter.
-  2. During the Firebase migration, initialize Firebase/authentication,
-     set window.NEXUS_ONE_LINE_USE_FIREBASE = true, and load the future
-     one_line_firebase_adapter.js here.
-  3. one_line_diagram.js consumes whichever adapter is active.
+  ACTIVE SCRIPT / STORAGE ORDER
+  -----------------------------
+  1. firebase-config.template.js provides disabled migration settings.
+  2. one_line_storage.js provides the current localStorage adapter.
+  3. one_line_auth.js protects the future Firebase deployment.
+  4. one_line_diagram.js provides the existing editor/viewer engine.
+  5. one_line_readiness.js additively provides:
+     - neon field/QR presentation
+     - readiness colors
+     - engineer/SME-only energized control
 
-  Keep the Firebase adapter disabled until storageLoad/storageSave in
-  one_line_diagram.js are converted to support asynchronous Promises.
+  The readiness module does not replace the diagram engine and does not
+  remove any existing editor behavior.
 -->
 <script src="firebase-config.template.js?v=1"></script>
 <script src="one_line_storage.js?v=9"></script>
@@ -70,7 +71,8 @@ href="one_line_diagram.css?v=8"
 </script>
 <script src="one_line_firebase_adapter.js?v=1"></script>
 -->
-<script src="one_line_diagram.js?v=9"></script>
+<script src="one_line_diagram.js?v=10"></script>
+<script src="one_line_readiness.js?v=1"></script>
 
   <script>
     (function initializeOneLineWorkspace() {
@@ -109,7 +111,8 @@ href="one_line_diagram.css?v=8"
         fileHelp.textContent =
           "Required files: one_line_diagram.html, " +
           "one_line_diagram.css, one_line_diagram.js, " +
-          "and one_line_storage.js.";
+          "one_line_readiness.css, one_line_readiness.js, and " +
+          "one_line_storage.js.";
 
         const consoleHelp = document.createElement("p");
         consoleHelp.textContent =
@@ -131,12 +134,13 @@ href="one_line_diagram.css?v=8"
         /*
          * URL CONTRACT
          * ------------
-         * mode=edit opens the engineering workspace.
-         * mode=view opens the compact read-only viewer.
-         * viewer=1 removes the Open Workspace button and is intended
-         * for phase-door QR codes.
+         * mode=edit opens the white SME/engineering workspace.
+         * mode=view opens a read-only viewer.
+         * embedded=1 keeps the traditional white dashboard view.
+         * viewer=1 activates the dark neon field/QR presentation.
+         * presentation=field may also explicitly request field styling.
          *
-         * Example viewer URL:
+         * Example field viewer URL:
          * one_line_diagram.html?mode=view&viewer=1&project=Ohio&
          * building=A&diagram=phase-2
          */
@@ -215,8 +219,8 @@ href="one_line_diagram.css?v=8"
             ? await window.NexusOneLineAuth.waitForUser()
             : { localDevelopment: true, claims: {} };
 
-          /* A QR viewer is always read-only. In Firebase mode, users
-             without editor claims are also forced into read-only mode. */
+          /* QR/field viewers are always read-only. In Firebase mode,
+             users without editor claims are also forced to view mode. */
           const authorizedToEdit = window.NexusOneLineAuth
             ? window.NexusOneLineAuth.canEdit(authSession)
             : true;
