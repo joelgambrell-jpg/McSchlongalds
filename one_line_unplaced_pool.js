@@ -101,13 +101,6 @@
     const workspace = pool.closest(".workspace");
     if (!workspace) return;
 
-    /*
-     * The core renderer historically added .pool-hidden when the Unplaced
-     * list reached zero. That caused the canvas to expand underneath the
-     * panel. Remove only that automatic collapsed state while the empty
-     * Unplaced tab is active. The normal manual hide button remains usable
-     * from other pool views.
-     */
     workspace.classList.remove("pool-hidden");
     pool.hidden = false;
     pool.removeAttribute("aria-hidden");
@@ -163,10 +156,32 @@
     }
   }
 
+  function loadSmartTools() {
+    if (!isEditorPage()) return;
+
+    if (!document.querySelector('link[data-nx-smart-tools="1"]')) {
+      const stylesheet = document.createElement("link");
+      stylesheet.rel = "stylesheet";
+      stylesheet.href = "one_line_smart_tools.css?v=1";
+      stylesheet.dataset.nxSmartTools = "1";
+      document.head.appendChild(stylesheet);
+    }
+
+    if (!document.querySelector('script[data-nx-smart-tools="1"]')) {
+      const script = document.createElement("script");
+      script.src = "one_line_smart_tools.js?v=1";
+      script.defer = true;
+      script.dataset.nxSmartTools = "1";
+      document.head.appendChild(script);
+    }
+  }
+
   function scan() {
     if (!isEditorPage()) return;
     document.querySelectorAll(".pool").forEach(install);
   }
+
+  loadSmartTools();
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", scan, { once: true });
