@@ -11,6 +11,7 @@
 
   <link rel="stylesheet" href="one_line_diagram.css?v=10" />
   <link rel="stylesheet" href="one_line_readiness.css?v=2" />
+  <link rel="stylesheet" href="one_line_field_compact.css?v=1" />
 </head>
 
 <body class="one-line-standalone-page">
@@ -41,8 +42,10 @@
      energized controls without replacing the core renderer.
   6. one_line_readiness_hotfix.js applies readiness colors to internally
      supplied sample data and after redraws.
-  7. one_line_display_identity.js adds the field-display project/building
-     banner and stronger phase identification on every presentation.
+  7. one_line_display_identity.js provides the compact field header,
+     floating Fit/zoom controls, and stronger phase identification.
+  8. one_line_field_compact.css maximizes the field-view canvas while
+     leaving the engineering editor and embedded dashboard unchanged.
 
   No existing editor, viewer, storage, navigation, gesture, or Firebase
   integration behavior is intentionally removed by these additive modules.
@@ -59,7 +62,7 @@
 <script src="one_line_diagram.js?v=10"></script>
 <script src="one_line_readiness.js?v=1"></script>
 <script src="one_line_readiness_hotfix.js?v=1"></script>
-<script src="one_line_display_identity.js?v=1"></script>
+<script src="one_line_display_identity.js?v=2"></script>
 
   <script>
     (function initializeOneLineWorkspace() {
@@ -90,8 +93,8 @@
         fileHelp.textContent =
           "Required files: one_line_diagram.html, one_line_diagram.css, " +
           "one_line_diagram.js, one_line_readiness.css, one_line_readiness.js, " +
-          "one_line_readiness_hotfix.js, one_line_display_identity.js, and " +
-          "one_line_storage.js.";
+          "one_line_readiness_hotfix.js, one_line_display_identity.js, " +
+          "one_line_field_compact.css, and one_line_storage.js.";
 
         const consoleHelp = document.createElement("p");
         consoleHelp.textContent = "Press F12 and open the Console tab for the exact error.";
