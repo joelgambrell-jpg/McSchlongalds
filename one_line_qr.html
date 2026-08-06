@@ -3,7 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NEXUS One-Line Viewer QR</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Completion Metric One-Line Diagram QR</title>
   <style>
     :root {
       color-scheme: light;
@@ -19,71 +22,169 @@
       min-height: 100vh;
       display: grid;
       place-items: center;
-      padding: 24px;
+      padding: 20px;
     }
 
     .sheet {
-      width: min(760px, 100%);
+      width: min(790px, 100%);
       background: #fff;
       border: 2px solid #111;
-      border-radius: 12px;
-      padding: 30px;
+      border-radius: 14px;
+      padding: 24px 30px 20px;
       text-align: center;
     }
 
-    .brand {
-      font-size: 34px;
-      font-weight: 900;
-      letter-spacing: 3px;
+    .ace-logo {
+      display: block;
+      width: min(520px, 88%);
+      height: auto;
+      margin: 0 auto 12px;
     }
 
-    .brand span { color: #c71920; }
+    .divider {
+      border: 0;
+      border-top: 1.5px solid #111;
+      margin: 10px 0 14px;
+    }
 
     h1 {
-      margin: 10px 0 6px;
-      font-size: 26px;
+      margin: 0 0 16px;
+      font-size: 29px;
+      line-height: 1.15;
     }
 
-    .subtitle {
-      margin: 0 0 20px;
-      font-weight: 700;
+    .project-block {
+      display: grid;
+      grid-template-columns: 1.35fr .8fr 1.2fr;
+      border: 1.5px solid #111;
+      border-radius: 9px;
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+
+    .project-cell {
+      padding: 12px 10px 14px;
+    }
+
+    .project-cell + .project-cell {
+      border-left: 1px solid #777;
+    }
+
+    .project-label {
+      display: block;
+      font-size: 15px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .project-value {
+      display: block;
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1;
+      overflow-wrap: anywhere;
+    }
+
+    .qr-wrap {
+      position: relative;
+      width: 400px;
+      max-width: 92%;
+      aspect-ratio: 1;
+      margin: 12px auto 14px;
+      display: grid;
+      place-items: center;
     }
 
     #qrcode {
-      width: 320px;
-      min-height: 320px;
-      margin: 18px auto;
+      width: 100%;
+      height: 100%;
       display: grid;
       place-items: center;
     }
 
     #qrcode img,
     #qrcode canvas {
-      max-width: 100%;
-      height: auto !important;
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
     }
+
+    .qr-brand {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      min-width: 132px;
+      padding: 9px 14px 8px;
+      background: #fff;
+      border: 5px solid #fff;
+      font-size: 30px;
+      font-weight: 1000;
+      letter-spacing: 2px;
+      line-height: 1;
+      pointer-events: none;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, .06);
+    }
+
+    .qr-brand .x { color: #d71920; }
 
     .instruction {
-      font-size: 20px;
-      font-weight: 800;
-      margin: 18px 0 6px;
+      margin: 8px 0 5px;
+      font-size: 19px;
+      font-weight: 900;
     }
 
-    .security-note {
-      margin: 8px auto 20px;
-      max-width: 560px;
-      color: #444;
-      line-height: 1.45;
+    .live-note {
+      margin: 0 auto 12px;
+      max-width: 610px;
+      font-size: 15px;
+      line-height: 1.35;
     }
 
-    .viewer-url {
-      width: 100%;
-      min-height: 76px;
-      resize: vertical;
-      border: 1px solid #777;
-      border-radius: 7px;
-      padding: 10px;
-      font: 13px/1.4 Consolas, monospace;
+    .viewer-access {
+      border-top: 1px solid #222;
+      border-bottom: 1px solid #222;
+      padding: 10px 14px;
+      margin-top: 10px;
+    }
+
+    .viewer-access h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+
+    .viewer-access p {
+      margin: 5px auto;
+      max-width: 660px;
+      font-size: 13.5px;
+      line-height: 1.35;
+    }
+
+    .viewer-access .internally {
+      font-weight: 900;
+      text-decoration: underline;
+    }
+
+    .published {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      font-weight: 900;
+    }
+
+    .published-label {
+      display: block;
+      font-size: 12px;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .published-value {
+      display: block;
+      font-size: 16px;
     }
 
     .actions {
@@ -91,7 +192,7 @@
       justify-content: center;
       flex-wrap: wrap;
       gap: 10px;
-      margin-top: 18px;
+      margin-top: 16px;
     }
 
     button,
@@ -101,7 +202,7 @@
       border-radius: 7px;
       background: #fff;
       color: #111;
-      padding: 12px 18px;
+      padding: 11px 17px;
       font: inherit;
       font-weight: 800;
       text-decoration: none;
@@ -121,41 +222,79 @@
       font-weight: 700;
     }
 
+    @media (max-width: 620px) {
+      body { padding: 8px; }
+      .sheet { padding: 18px 14px; }
+      h1 { font-size: 23px; }
+      .project-value { font-size: 22px; }
+      .project-label { font-size: 12px; }
+      .qr-wrap { width: min(400px, 96%); }
+      .qr-brand { min-width: 104px; font-size: 23px; padding: 7px 10px 6px; }
+    }
+
     @media print {
+      @page { size: portrait; margin: .25in; }
       body { background: #fff; padding: 0; }
-      .sheet { border: none; width: 100%; }
-      .actions, .viewer-url { display: none; }
+      .sheet { border: 2px solid #111; width: 100%; }
+      .actions { display: none; }
     }
   </style>
 </head>
 <body>
   <main class="sheet">
-    <div class="brand">NE<span>X</span>US</div>
-    <h1>Live One-Line Diagram</h1>
-    <p id="diagramLabel" class="subtitle"></p>
+    <img class="ace-logo" src="ace-electric-logo.svg" alt="ACE Electric, Inc. Electrical Contractor" />
+    <hr class="divider" />
 
-    <div id="qrcode" aria-label="QR code for the viewer-only one-line diagram"></div>
+    <h1>Completion Metric One line Diagram</h1>
 
-    <p class="instruction">Scan to view the current diagram</p>
-    <p class="security-note">
-      Viewer-only access still requires normal NEXUS system authorization.
-      The QR code does not contain a password, login token, or editing permission.
-    </p>
+    <section class="project-block" aria-label="Project diagram information">
+      <div class="project-cell">
+        <span class="project-label">Project</span>
+        <span id="projectValue" class="project-value"></span>
+      </div>
+      <div class="project-cell">
+        <span class="project-label">Building</span>
+        <span id="buildingValue" class="project-value"></span>
+      </div>
+      <div class="project-cell">
+        <span class="project-label">View</span>
+        <span id="viewValue" class="project-value"></span>
+      </div>
+    </section>
 
-    <label for="viewerUrl"><strong>Viewer URL</strong></label>
-    <textarea id="viewerUrl" class="viewer-url" readonly></textarea>
+    <div class="qr-wrap">
+      <div id="qrcode" aria-label="QR code for the viewer-only one-line diagram"></div>
+      <div class="qr-brand" aria-hidden="true">NE<span class="x">X</span>US</div>
+    </div>
+
+    <p class="instruction">Scan to Open the Live NEXUS One-Line</p>
+    <p class="live-note">This QR code always opens the latest published version for this building and view.</p>
+
+    <section class="viewer-access">
+      <h2>Viewer Access</h2>
+      <p>This QR code provides read-only access to the <span class="internally">internally</span> published one-line.</p>
+      <p>No editing functions are available through this QR code.</p>
+      <p>Access is controlled by your NEXUS permissions administration team.</p>
+    </section>
+
+    <div class="published" aria-label="Published date and time">
+      <span aria-hidden="true">◷</span>
+      <span>
+        <span class="published-label">Published</span>
+        <span id="publishedValue" class="published-value"></span>
+      </span>
+    </div>
 
     <div class="actions">
       <button id="printButton" class="primary" type="button">Print Door Sign</button>
-      <button id="copyButton" type="button">Copy Viewer Link</button>
       <a id="openViewer" class="button" target="_blank" rel="noopener noreferrer">Open Viewer</a>
     </div>
   </main>
 
   <!--
-    QRCode.js 1.0.0 is loaded from jsDelivr with an exact version.
-    It has no runtime dependencies. For a fully offline installation,
-    download qrcode.min.js into this folder and change the src below.
+    QRCode.js is loaded with high error correction so the centered NEXUS mark
+    can be used without reducing normal scanner reliability. The actual QR
+    destination remains the viewer-only URL and contains no password or token.
   -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
@@ -181,54 +320,40 @@
         window.location.href
       ).href;
 
-      const label = document.getElementById("diagramLabel");
-      const urlField = document.getElementById("viewerUrl");
+      const displayView = diagramId
+        .replace(/-/g, " ")
+        .replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
+
+      document.getElementById("projectValue").textContent = projectId;
+      document.getElementById("buildingValue").textContent = buildingId;
+      document.getElementById("viewValue").textContent = displayView;
+      document.getElementById("openViewer").href = viewerUrl;
+      document.getElementById("publishedValue").textContent = new Date().toLocaleString([], {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
+
       const qrHost = document.getElementById("qrcode");
-      const openViewer = document.getElementById("openViewer");
-
-      label.textContent =
-        projectId + " • Building " + buildingId + " • " +
-        diagramId.replace(/-/g, " ").replace(/\b\w/g, function (letter) {
-          return letter.toUpperCase();
-        });
-
-      urlField.value = viewerUrl;
-      openViewer.href = viewerUrl;
-
       if (typeof window.QRCode !== "function") {
-        qrHost.innerHTML =
-          '<div class="error">QR generator could not load. The viewer link below is still valid.</div>';
+        qrHost.innerHTML = '<div class="error">QR generator could not load.</div>';
+        document.querySelector(".qr-brand").hidden = true;
       } else {
         new window.QRCode(qrHost, {
           text: viewerUrl,
-          width: 320,
-          height: 320,
+          width: 400,
+          height: 400,
           colorDark: "#000000",
           colorLight: "#ffffff",
           correctLevel: window.QRCode.CorrectLevel.H
         });
       }
 
-      document.getElementById("printButton").addEventListener(
-        "click",
-        function printDoorSign() {
-          window.print();
-        }
-      );
-
-      document.getElementById("copyButton").addEventListener(
-        "click",
-        async function copyViewerLink(event) {
-          try {
-            await navigator.clipboard.writeText(viewerUrl);
-            event.currentTarget.textContent = "Copied";
-          } catch (error) {
-            urlField.focus();
-            urlField.select();
-            event.currentTarget.textContent = "Select and Copy";
-          }
-        }
-      );
+      document.getElementById("printButton").addEventListener("click", function () {
+        window.print();
+      });
     })();
   </script>
 </body>
