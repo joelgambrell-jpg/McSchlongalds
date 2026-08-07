@@ -827,3 +827,88 @@ svg[data-role="diagram-svg"] {
 .nexus-one-line.is-viewer-only .one-line-view-toolbar {
   border-bottom: 1px solid #c7cbd1;
 }
+
+/* ================================================================
+   PHONE EMERGENCY ACCESS — PRESERVE FULL DESKTOP WORKSPACE
+   ================================================================
+   Phones intentionally keep the complete engineering layout. The page
+   becomes a large scrollable desktop surface instead of compressing,
+   hiding, or rearranging tools. No editor logic or stored coordinates
+   are changed by these rules.
+*/
+@media (max-width: 767px) {
+  html,
+  body {
+    width: auto;
+    min-width: 1290px;
+    height: auto;
+    min-height: 100%;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    display: block;
+  }
+
+  .nx-header {
+    width: 1290px;
+    min-width: 1290px;
+    grid-template-columns: 260px 1fr auto;
+  }
+
+  .title-block {
+    min-width: 250px;
+  }
+
+  .header-actions {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+
+  .header-actions .save-state,
+  .editing-pill {
+    display: inline-block;
+  }
+
+  .control-strip {
+    width: 1290px;
+    min-width: 1290px;
+    overflow: visible;
+    flex-wrap: nowrap;
+  }
+
+  .primary-tools {
+    min-width: 570px;
+  }
+
+  .workspace,
+  .workspace.pool-hidden {
+    width: 1290px;
+    min-width: 1290px;
+    height: 760px;
+    min-height: 760px;
+    grid-template-columns: 280px 680px 300px;
+  }
+
+  .workspace.pool-hidden {
+    grid-template-columns: 960px 300px;
+  }
+
+  .properties {
+    display: flex;
+  }
+
+  .panel,
+  .canvas-wrap,
+  .properties {
+    min-height: 0;
+  }
+
+  .pool-list,
+  .properties-wrap {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
